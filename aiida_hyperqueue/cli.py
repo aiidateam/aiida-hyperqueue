@@ -31,13 +31,13 @@ def start_cmd(computer):
         return
 
     with computer.get_transport() as transport:
-        retval, stdout, stderr = transport.exec_command_wait(
+        retval, _, stderr = transport.exec_command_wait(
             'nohup hq server start 1>$HOME/.hq-stdout 2>$HOME/.hq-stderr &')
 
     if retval != 0:
         echo.echo_critical(f'unable to start the server: {stderr}')
 
-    echo.echo_success(f'{stdout}')
+    echo.echo_success('HQ server started!')
 
 
 @server_group.command('info')
@@ -75,13 +75,22 @@ def alloc_group():
     ('Time limit for each job run by the allocation. The duration can be expressed using various shortcuts '
      'recognised by HyperQueue, e.g. 30m, 2h, ... For the full list, see https://tinyurl.com/hq-duration.'
      ))
+@click.option(
+    '-H',
+    '--enable-hyperthreading',
+    type=click.BOOL,
+    is_flag=True,
+    help=(
+        'Allow HyperQueue to consider hyperthreads when assigning resources.'))
 @decorators.with_dbenv()
-def add_cmd(slurm_options, computer, time_limit):
+def add_cmd(slurm_options, computer, time_limit, enable_hyperthreading):
     """Add a new allocation to the HQ server."""
+
+    hyper = '' if enable_hyperthreading else '--cpus no-ht'
 
     with computer.get_transport() as transport:
         retval, _, stderr = transport.exec_command_wait(
-            f'hq alloc add slurm -b 1 --time-limit {time_limit} --name aiida -- {" ".join(slurm_options)}'
+            f'hq alloc add slurm -b 1 --time-limit {time_limit} --name aiida {hyper} -- {" ".join(slurm_options)}'
         )
 
     if retval != 0:
