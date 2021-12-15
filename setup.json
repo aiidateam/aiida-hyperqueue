@@ -1,0 +1,52 @@
+{
+    "name": "aiida-hyperqueue",
+    "author": "The AiiDA Team",
+    "author_email": "developers@aiida.net",
+    "description": "AiiDA plugin for the HyperQueue metascheduler",
+    "url": "https://github.com/aiidateam/aiida-hyperqueue",
+    "license": "MIT",
+    "classifiers": [
+        "Programming Language :: Python",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Development Status :: 3 - Alpha",
+        "Framework :: AiiDA"
+    ],
+    "version": "0.1.0",
+    "entry_points": {
+        "aiida.schedulers": [
+            "hyperqueue = aiida_hyperqueue.scheduler:HyperQueueScheduler"
+        ],
+        "aiida.cmdline.data": [
+            "hyperqueue = aiida_hyperqueue.cli:data_cli"
+        ]
+    },
+    "include_package_data": true,
+    "reentry_register": true,
+    "install_requires": [
+        "aiida-core>=1.1.0,<2.0.0",
+        "six",
+        "voluptuous"
+    ],
+    "extras_require": {
+        "testing": [
+            "pgtest~=1.3.1",
+            "wheel~=0.31",
+            "coverage",
+            "pytest~=6.0",
+            "pytest-cov"
+        ],
+        "pre-commit": [
+            "pre-commit~=2.2",
+            "pylint>=2.5.0,<2.9"
+        ],
+        "docs": [
+            "sphinx",
+            "myst-parser",
+            "sphinx-design",
+            "sphinx-book-theme",
+            "sphinxcontrib-details-directive~=0.1.0"
+        ]
+    }
+}
