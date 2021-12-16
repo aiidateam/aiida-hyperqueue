@@ -7,11 +7,11 @@
 
 > WARNING: This plugin is still in heavy development. Expect bugs to pop up and the API to change.
 
-AiiDA plugin for the HyperQueue metascheduler.
+AiiDA plugin for the [HyperQueue](https://github.com/It4innovations/hyperqueue) metascheduler.
 
 ## Features
 
-Allows task farming on Slurm machines through the submission of AiiDA calculations to the HyperQueue metascheduler.
+Allows task farming on Slurm machines through the submission of AiiDA calculations to the [HyperQueue](https://github.com/It4innovations/hyperqueue) metascheduler.
 
 ## Installation
 
