@@ -24,7 +24,7 @@ Then download the latest version of HyperQueue, untar the binary and put it in t
 
 :::{code-block} console
 
-wget -qO- https://github.com/It4innovations/hyperqueue/releases/download/v0.6.1/hq-v0.6.1-linux-x64.tar.gz | tar xvz -C $HOME/bin
+wget -qO- https://github.com/It4innovations/hyperqueue/releases/download/v0.7.0/hq-v0.7.0-linux-x64.tar.gz | tar xvz -C $HOME/bin
 :::
 
 Next, if the directory isn't already part of your `PATH`, add the following line to your `.bashrc`:
