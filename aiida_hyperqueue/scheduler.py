@@ -124,10 +124,13 @@ class HyperQueueScheduler(Scheduler):
         if job_tmpl.max_wallclock_seconds:
             # `--time-request` will only let the HQ job start on the worker in case there is still enough time available
             # `--time-limit` means the HQ job will be killed after this time.
-            # It's better to use `--time-request`, since it will guarantee that the time is still available, but won't
-            # kill job the job in case more time is needed and is available.
+            # It's better to use both: the former will guarantee that the time is still available, the latter
+            # will kill job the job in case the job takes more time (e.g. it hangs).
+            # This is the typical behavior of schedulers and avoids that if one run enters an infinite loop,
+            # it burns all the time of the worker.
             hq_options.append(
-                f'--time-request={job_tmpl.max_wallclock_seconds}s')
+                f'--time-request={job_tmpl.max_wallclock_seconds}s --time-limit={job_tmpl.max_wallclock_seconds}s'
+            )
 
         if job_tmpl.priority:
             # HQ jobs can be assigned priority, where jobs with a higher priority will be executed first. The default
