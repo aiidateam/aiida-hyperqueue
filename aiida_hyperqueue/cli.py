@@ -82,15 +82,32 @@ def alloc_group():
     is_flag=True,
     help=(
         'Allow HyperQueue to consider hyperthreads when assigning resources.'))
+@click.option(
+    '-b',
+    '--backlog',
+    type=click.INT,
+    required=False,
+    default=0,
+    help=(
+        'Allow HyperQueue to consider hyperthreads when assigning resources.'))
+@click.option(
+    '-w',
+    '--workers-per-alloc',
+    type=click.INT,
+    required=False,
+    default=1,
+    help=(
+        'Option to allow pooled jobs to launch on multiple nodes.'))
+
 @decorators.with_dbenv()
-def add_cmd(slurm_options, computer, time_limit, enable_hyperthreading):
+def add_cmd(slurm_options, computer, time_limit,  enable_hyperthreading, backlog, workers_per_alloc):
     """Add a new allocation to the HQ server."""
 
     hyper = '' if enable_hyperthreading else '--cpus no-ht'
 
     with computer.get_transport() as transport:
         retval, _, stderr = transport.exec_command_wait(
-            f'hq alloc add slurm -b 1 --time-limit {time_limit} --name aiida {hyper} -- {" ".join(slurm_options)}'
+            f'hq alloc add slurm --backlog {backlog} --time-limit {time_limit} --name aiida {hyper} --workers-per-alloc {workers_per_alloc} -- {" ".join(slurm_options)}'
         )
 
     if retval != 0:
