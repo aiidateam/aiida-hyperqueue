@@ -87,7 +87,7 @@ def alloc_group():
     '--backlog',
     type=click.INT,
     required=False,
-    default=0,
+    default=1,
     help=(
         'Allow HyperQueue to consider hyperthreads when assigning resources.'))
 @click.option(
