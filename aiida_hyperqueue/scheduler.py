@@ -153,7 +153,7 @@ class HyperQueueScheduler(Scheduler):
         submit_command = (
             f"chmod 774 {submit_script}; options=$(grep '#HQ' {submit_script});"
             f"sed -i s/\\'srun\\'/srun\ --cpu-bind=map_cpu:\$HQ_CPUS/  {submit_script};"
-            f'hq submit ${{options:3}} ./{submit_script}')
+            f'hq job submit ${{options:3}} ./{submit_script}')
 
         self.logger.info(f'submitting with: {submit_command}')
 
@@ -207,14 +207,14 @@ class HyperQueueScheduler(Scheduler):
         """
         Return the ``hq`` command for listing the active jobs.
 
-        Note: since the ``hq jobs`` command cannot filter on job ids (yet), the ``jobs`` input is currently ignored.
+        Note: since the ``hq job list`` command cannot filter on job ids (yet), the ``jobs`` input is currently ignored.
         These could in principle be passed to the ``hq job`` command, but this has an entirely different format.
         """
 
         if user:
             raise FeatureNotAvailable('Cannot query by user with HyperQueue')
 
-        return 'hq jobs waiting running'
+        return 'hq job list --filter waiting,running'
 
     def _parse_joblist_output(self, retval: int, stdout: str,
                               stderr: str) -> list:
@@ -225,14 +225,14 @@ class HyperQueueScheduler(Scheduler):
         """
         if retval != 0:
             raise SchedulerError(
-                f"""hq jobs returned exit code {retval} (_parse_joblist_output function)
+                f"""hq job list returned exit code {retval} (_parse_joblist_output function)
                 stdout='{stdout.strip()}'
                 stderr='{stderr.strip()}'
                 """)
 
         if stderr.strip():
             self.logger.warning(
-                f"hq jobs returned exit code 0 (_parse_joblist_output function) but non-empty stderr='{stderr.strip()}'"
+                f"hq job list returned exit code 0 (_parse_joblist_output function) but non-empty stderr='{stderr.strip()}'"
             )
 
         job_info_pattern = re.compile(
@@ -257,7 +257,7 @@ class HyperQueueScheduler(Scheduler):
         """
         Return the command to kill the job with specified jobid.
         """
-        submit_command = f'hq cancel {jobid}'
+        submit_command = f'hq job cancel {jobid}'
 
         self.logger.info(f'killing job {jobid}')
 
