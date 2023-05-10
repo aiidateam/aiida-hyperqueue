@@ -1,3 +1,60 @@
+[build-system]
+requires = ["flit_core>=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "aiida-hyperqueue"
+version = "0.1.0"
+authors = [
+  {name = "Marnik Bercx"}
+]
+description = "AiiDA plugin for the HyperQueue metascheduler"
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+    "Framework :: AiiDA",
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+]
+requires-python = ">=3.6"
+
+dependencies = [
+    "aiida-core~=2.0",
+]
+
+[project.urls]
+Source = "https://github.com/aiidateam/aiida-hyperqueue"
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "myst-parser",
+    "sphinx-design",
+    "sphinx-book-theme",
+    "sphinxcontrib-details-directive~=0.1.0"
+]
+tests = [
+    "pgtest~=1.3.1",
+    "wheel~=0.31",
+    "coverage",
+    "pytest~=6.0",
+    "pytest-cov",
+]
+pre-commit = [
+    "pre-commit~=2.2",
+    "pylint>=2.5.0,<2.9"
+]
+
+[project.entry-points.'aiida.schedulers']
+"hyperqueue" = "aiida_hyperqueue.scheduler:HyperQueueScheduler"
+
+[project.entry-points.'aiida.cmdline.data']
+"hyperqueue" = "aiida_hyperqueue.cli:data_cli"
+
 [tool.pylint.format]
 max-line-length = 125
 
