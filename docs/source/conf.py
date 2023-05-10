@@ -11,8 +11,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os
-import sys
 import time
 
 import aiida_hyperqueue
@@ -88,7 +86,7 @@ version = '.'.join(release.split('.')[:2])
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -107,7 +105,7 @@ pygments_style = 'sphinx'
 html_theme = 'sphinx_book_theme'
 
 html_theme_options = {
-    'repository_url': 'https://github.com/{your-docs-url}',
+    'repository_url': 'https://github.com/aiidateam/aiida-hyperqueue',
     'use_repository_button': True,
 }
 
