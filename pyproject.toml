@@ -4,11 +4,11 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "aiida-hyperqueue"
-version = "0.1.0"
+dynamic = ['version']
+description = "AiiDA plugin for the HyperQueue metascheduler"
 authors = [
   {name = "Marnik Bercx"}
 ]
-description = "AiiDA plugin for the HyperQueue metascheduler"
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = [
