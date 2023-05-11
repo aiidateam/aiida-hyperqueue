@@ -1,6 +1,6 @@
 [![Build Status](https://github.com/aiidateam/aiida-hyperqueue/workflows/ci/badge.svg?branch=main)](https://github.com/aiidateam/aiida-hyperqueue/actions)
 [![Docs status](https://readthedocs.org/projects/aiida-hyperqueue/badge)](http://aiida-hyperqueue.readthedocs.io/)
-<!-- [![PyPI version](https://badge.fury.io/py/aiida-hyperqueue.svg)](https://badge.fury.io/py/aiida-hyperqueue) -->
+[![PyPI version](https://badge.fury.io/py/aiida-hyperqueue.svg)](https://badge.fury.io/py/aiida-hyperqueue)
 
 # AiiDA HyperQueue plugin
 
