@@ -76,12 +76,12 @@ def alloc_group():
      'recognised by HyperQueue, e.g. 30m, 2h, ... For the full list, see https://tinyurl.com/hq-duration.'
      ))
 @click.option(
-    '-H',
-    '--enable-hyperthreading',
+    '--hyper-threading/--no-hyper-threading',
+    default=True,
     type=click.BOOL,
-    is_flag=True,
     help=(
-        'Allow HyperQueue to consider hyperthreads when assigning resources.'))
+        'Allow HyperQueue to consider hyperthreads when assigning resources.'),
+    )
 @click.option(
     '-b',
     '--backlog',
@@ -99,11 +99,11 @@ def alloc_group():
               help=('Option to allow pooled jobs to launch on multiple nodes.')
               )
 @decorators.with_dbenv()
-def add_cmd(slurm_options, computer, time_limit, enable_hyperthreading,
+def add_cmd(slurm_options, computer, time_limit, hyper_threading,
             backlog, workers_per_alloc):
     """Add a new allocation to the HQ server."""
 
-    hyper = '' if enable_hyperthreading else '--no-hyper-threading'
+    hyper = '' if hyper_threading else '--no-hyper-threading'
 
     with computer.get_transport() as transport:
         retval, _, stderr = transport.exec_command_wait(
