@@ -31,7 +31,7 @@ _MAP_STATUS_HYPERQUEUE = {
 class HyperQueueJobResource(JobResource):
     """Class for HyperQueue job resources."""
 
-    _default_fields = ('num_mpiprocs', 'num_cores', 'memory_Mb')
+    _default_fields = ('num_cpus', 'memory_mb')
 
     def __init__(self, **kwargs):
         """
@@ -55,26 +55,17 @@ class HyperQueueJobResource(JobResource):
         resources = AttributeDict()
 
         try:
-            resources.num_cores = int(kwargs.pop('num_cores'))
-        except (KeyError, ValueError) as exception:
-            raise ValueError(
-                '`num_cores` must be specified and must be an integer'
-            ) from exception
-
-        try:
-            resources.num_mpiprocs = int(kwargs.pop('num_mpiprocs'))
-        except KeyError:
-            resources.num_mpiprocs = int(resources.num_cores)
+            resources.num_cpus = int(kwargs.pop('num_cpus'))
         except ValueError as exception:
             raise ValueError(
-                '`num_mpiprocs` must be an integer') from exception
+                '`num_cpus` must be an integer') from exception
 
         try:
-            resources.memory_Mb = int(kwargs.pop('memory_Mb'))
+            resources.memory_mb = int(kwargs.pop('memory_mb'))
         except KeyError:
-            resources.memory_Mb = 0  # Use all the memory on the node
+            resources.memory_mb = 0  # Use all the memory on the worker
         except ValueError as exception:
-            raise ValueError('`memory_Mb` must be an integer') from exception
+            raise ValueError('`memory_mb` must be an integer') from exception
 
         return resources
 
@@ -85,7 +76,7 @@ class HyperQueueJobResource(JobResource):
 
     def get_tot_num_mpiprocs(self):
         """Return the total number of cpus of this job resource."""
-        return self.num_mpiprocs
+        return self.num_cpus
 
 
 class HyperQueueScheduler(Scheduler):
@@ -137,8 +128,8 @@ class HyperQueueScheduler(Scheduler):
             # priority is 0.
             hq_options.append(f'--priority={job_tmpl.priority}')
 
-        if job_tmpl.job_resource.num_cores:
-            hq_options.append(f'--cpus={job_tmpl.job_resource.num_cores}')
+        hq_options.append(f'--cpus={job_tmpl.job_resource.num_cpus}')
+        hq_options.append(f'--resource mem={job_tmpl.job_resource.memory_mb}')
 
         return '#HQ ' + ' '.join(hq_options)
 
