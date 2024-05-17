@@ -51,7 +51,7 @@ transport: ssh
 scheduler: hyperqueue  # Use the `hyperqueue` scheduler
 shebang: '#!/bin/bash'
 work_dir: /scratch/e1000/{username}/aiida
-mpirun_command: srun -s -n {num_mpiprocs} --mem {memory_Mb}  # Make sure to use this srun command
+mpirun_command: srun -s -n {num_cpus} --mem {memory_mb}  # Make sure to use this srun command
 mpiprocs_per_machine: 128
 prepend_text: ' '
 append_text: ' '
