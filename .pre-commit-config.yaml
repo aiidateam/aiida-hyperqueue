@@ -1,33 +1,18 @@
 # Install pre-commit hooks via:
 # pre-commit install
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v3.4.0
-  hooks:
-    - id: double-quote-string-fixer
-    - id: end-of-file-fixer
-    - id: fix-encoding-pragma
-    - id: mixed-line-ending
-    - id: trailing-whitespace
-    - id: check-json
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.1.0
+      hooks:
+        - id: double-quote-string-fixer
+        - id: end-of-file-fixer
+        - id: fix-encoding-pragma
+        - id: mixed-line-ending
+        - id: trailing-whitespace
+        - id: check-json
 
-# yapf = yet another python formatter
-- repo: https://github.com/pre-commit/mirrors-yapf
-  rev: v0.30.0
-  hooks:
-  - id: yapf
-    name: yapf
-    args: ["-i"]
-
-- repo: local
-  hooks:
-  - id: pylint
-    language: system
-    types: [file, python]
-    name: pylint
-    description: "This hook runs the pylint static code analyzer"
-    exclude: &exclude_files >
-      (?x)^(
-          docs/.*|
-      )$
-    entry: pylint
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.4.1
+      hooks:
+      - id: ruff-format
+      - id: ruff
