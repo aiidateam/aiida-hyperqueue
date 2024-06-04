@@ -1,35 +1,20 @@
 # -*- coding: utf-8 -*-
 """Tests for command line interface."""
-
-
+import pytest
 import datetime
 import logging
 import unittest
 import uuid
-import pytest
+from pathlib import Path
 
 from aiida.engine import CalcJob
 from aiida.schedulers import JobState, SchedulerError
+from aiida.common.datastructures import CodeRunMode
+from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
 from aiida_hyperqueue.scheduler import HyperQueueJobResource, HyperQueueScheduler
 
-
-# job_id, state_raw, annotation, executing_host, username, number_nodes, number_cpus, allocated_machines, partition, time_limit, time_used, dispatch_time, job_name, submission_time
-# See SlurmScheduler.fields
-TEXT_SQUEUE_TO_TEST = """862540^^^PD^^^Dependency^^^n/a^^^user1^^^20^^^640^^^(Dependency)^^^normal^^^1-00:00:00^^^0:00^^^N/A^^^longsqw_L24_q_10_0^^^2013-05-22T01:41:11
-863100^^^PD^^^Resources^^^n/a^^^user2^^^32^^^1024^^^(Resources)^^^normal^^^10:00^^^0:00^^^2013-05-23T14:44:44^^^eq_solve_e4.slm^^^2013-05-22T04:23:59
-863546^^^PD^^^Priority^^^n/a^^^user3^^^2^^^64^^^(Priority)^^^normal^^^8:00:00^^^0:00^^^2013-05-23T14:44:44^^^S2-H2O^^^2013-05-22T08:08:41
-863313^^^PD^^^JobHeldUser^^^n/a^^^user4^^^1^^^1^^^(JobHeldUser)^^^normal^^^1:00:00^^^0:00^^^N/A^^^test^^^2013-05-23T00:28:12
-862538^^^R^^^None^^^rosa10^^^user5^^^20^^^640^^^nid0[0099,0156-0157,0162-0163,0772-0773,0826,0964-0965,1018-1019,1152-1153,1214-1217,1344-1345]^^^normal^^^1-00:00:00^^^32:10^^^2013-05-23T11:41:30^^^longsqw_L24_q_11_0^^^2013-05-23T03:04:21
-861352^^^R^^^None^^^rosa11^^^user6^^^4^^^128^^^nid00[192,246,264-265]^^^normal^^^1-00:00:00^^^23:30:20^^^2013-05-22T12:43:20^^^Pressure_PBEsol_0^^^2013-05-23T09:35:23
-863553^^^R^^^None^^^rosa1^^^user5^^^1^^^32^^^nid00471^^^normal^^^30:00^^^29:29^^^2013-05-23T11:44:11^^^bash^^^2013-05-23T10:42:11
-863554^^^R^^^None^^^rosa1^^^user5^^^1^^^32^^^nid00471^^^normal^^^NOT_SET^^^29:29^^^2013-05-23T11:44:11^^^bash^^^2013-05-23T10:42:11
-"""
-JOBS_ON_CLUSTER = 8
-JOBS_HELD = 2
-JOBS_QUEUED = 2
-USERS_RUNNING = ['user5', 'user6']
-JOBS_RUNNING = ['862538', '861352', '863553', '863554']
-
+from .conftest import HqEnv
+from .utils import wait_for_job_state
 
 def test_resource_validation():
     """Tests to verify that resources are correctly validated."""
@@ -41,7 +26,7 @@ def test_resource_validation():
     # If memory_mb not set, the default value 0 will be assigned
     resource = HyperQueueJobResource(num_cpus=16)
     assert resource.num_cpus == 16
-    assert resource.memory_mb == 0
+    assert resource.memory_mb is None
 
     # raise if num_cpus is not set
     with pytest.raises(
@@ -65,78 +50,73 @@ def test_resource_validation():
         HyperQueueJobResource(num_cpus=4, memory_mb=1.2)
 
 
-#class TestParserSqueue(unittest.TestCase):
-#    """Tests to verify if the function _parse_joblist_output behave correctly
-#    The tests is done parsing a string defined above, to be used offline
-#    """
+#def test_parse_common_joblist_output():
+#    """Test whether _parse_joblist_output can parse the squeue output"""
+#    scheduler = SlurmScheduler()
 #
-#    def test_parse_common_joblist_output(self):
-#        """Test whether _parse_joblist_output can parse the squeue output"""
-#        scheduler = SlurmScheduler()
+#    retval = 0
+#    stdout = TEXT_SQUEUE_TO_TEST
+#    stderr = ''
 #
-#        retval = 0
-#        stdout = TEXT_SQUEUE_TO_TEST
-#        stderr = ''
+#    job_list = scheduler._parse_joblist_output(retval, stdout, stderr)
+#    job_dict = {j.job_id: j for j in job_list}
 #
-#        job_list = scheduler._parse_joblist_output(retval, stdout, stderr)
-#        job_dict = {j.job_id: j for j in job_list}
+#    # The parameters are hard coded in the text to parse
+#    job_parsed = len(job_list)
+#    assert job_parsed == JOBS_ON_CLUSTER
 #
-#        # The parameters are hard coded in the text to parse
-#        job_parsed = len(job_list)
-#        assert job_parsed == JOBS_ON_CLUSTER
+#    job_running_parsed = len([j for j in job_list if j.job_state and j.job_state == JobState.RUNNING])
+#    assert len(JOBS_RUNNING) == job_running_parsed
 #
-#        job_running_parsed = len([j for j in job_list if j.job_state and j.job_state == JobState.RUNNING])
-#        assert len(JOBS_RUNNING) == job_running_parsed
+#    job_held_parsed = len([j for j in job_list if j.job_state and j.job_state == JobState.QUEUED_HELD])
+#    assert JOBS_HELD == job_held_parsed
 #
-#        job_held_parsed = len([j for j in job_list if j.job_state and j.job_state == JobState.QUEUED_HELD])
-#        assert JOBS_HELD == job_held_parsed
+#    job_queued_parsed = len([j for j in job_list if j.job_state and j.job_state == JobState.QUEUED])
+#    assert JOBS_QUEUED == job_queued_parsed
 #
-#        job_queued_parsed = len([j for j in job_list if j.job_state and j.job_state == JobState.QUEUED])
-#        assert JOBS_QUEUED == job_queued_parsed
+#    parsed_running_users = [j.job_owner for j in job_list if j.job_state and j.job_state == JobState.RUNNING]
+#    assert set(USERS_RUNNING) == set(parsed_running_users)
 #
-#        parsed_running_users = [j.job_owner for j in job_list if j.job_state and j.job_state == JobState.RUNNING]
-#        assert set(USERS_RUNNING) == set(parsed_running_users)
+#    parsed_running_jobs = [j.job_id for j in job_list if j.job_state and j.job_state == JobState.RUNNING]
+#    assert set(JOBS_RUNNING) == set(parsed_running_jobs)
 #
-#        parsed_running_jobs = [j.job_id for j in job_list if j.job_state and j.job_state == JobState.RUNNING]
-#        assert set(JOBS_RUNNING) == set(parsed_running_jobs)
+#    assert job_dict['863553'].requested_wallclock_time_seconds, 30 * 60
+#    assert job_dict['863553'].wallclock_time_seconds, 29 * 60 + 29
+#    assert job_dict['863553'].dispatch_time, datetime.datetime(2013, 5, 23, 11, 44, 11)
+#    assert job_dict['863553'].submission_time, datetime.datetime(2013, 5, 23, 10, 42, 11)
 #
-#        assert job_dict['863553'].requested_wallclock_time_seconds, 30 * 60
-#        assert job_dict['863553'].wallclock_time_seconds, 29 * 60 + 29
-#        assert job_dict['863553'].dispatch_time, datetime.datetime(2013, 5, 23, 11, 44, 11)
-#        assert job_dict['863553'].submission_time, datetime.datetime(2013, 5, 23, 10, 42, 11)
+#    assert job_dict['863100'].annotation == 'Resources'
+#    assert job_dict['863100'].num_machines == 32
+#    assert job_dict['863100'].num_mpiprocs == 1024
+#    assert job_dict['863100'].queue_name == 'normal'
 #
-#        assert job_dict['863100'].annotation == 'Resources'
-#        assert job_dict['863100'].num_machines == 32
-#        assert job_dict['863100'].num_mpiprocs == 1024
-#        assert job_dict['863100'].queue_name == 'normal'
+#    assert job_dict['861352'].title == 'Pressure_PBEsol_0'
 #
-#        assert job_dict['861352'].title == 'Pressure_PBEsol_0'
+#    assert job_dict['863554'].requested_wallclock_time_seconds is None
 #
-#        assert job_dict['863554'].requested_wallclock_time_seconds is None
+#    # allocated_machines is not implemented in this version of the plugin
+#    #        for j in job_list:
+#    #            if j.allocated_machines:
+#    #                num_machines = 0
+#    #                num_mpiprocs = 0
+#    #                for n in j.allocated_machines:
+#    #                    num_machines += 1
+#    #                    num_mpiprocs += n.num_mpiprocs
+#    #
+#    #                self.assertTrue( j.num_machines==num_machines )
+#    #                self.assertTrue( j.num_mpiprocs==num_mpiprocs )
 #
-#        # allocated_machines is not implemented in this version of the plugin
-#        #        for j in job_list:
-#        #            if j.allocated_machines:
-#        #                num_machines = 0
-#        #                num_mpiprocs = 0
-#        #                for n in j.allocated_machines:
-#        #                    num_machines += 1
-#        #                    num_mpiprocs += n.num_mpiprocs
-#        #
-#        #                self.assertTrue( j.num_machines==num_machines )
-#        #                self.assertTrue( j.num_mpiprocs==num_mpiprocs )
+#def test_parse_failed_squeue_output(self):
+#    """Test that _parse_joblist_output reacts as expected to failures."""
+#    scheduler = SlurmScheduler()
 #
-#    def test_parse_failed_squeue_output(self):
-#        """Test that _parse_joblist_output reacts as expected to failures."""
-#        scheduler = SlurmScheduler()
+#    # non-zero return value should raise
+#    with pytest.raises(SchedulerError, match='squeue returned exit code 1'):
+#        scheduler._parse_joblist_output(1, TEXT_SQUEUE_TO_TEST, '')
 #
-#        # non-zero return value should raise
-#        with pytest.raises(SchedulerError, match='squeue returned exit code 1'):
-#            scheduler._parse_joblist_output(1, TEXT_SQUEUE_TO_TEST, '')
-#
-#        # non-empty stderr should be logged
-#        with self.assertLogs(scheduler.logger, logging.WARNING):
-#            scheduler._parse_joblist_output(0, TEXT_SQUEUE_TO_TEST, 'error message')
+#    # non-empty stderr should be logged
+#    with self.assertLogs(scheduler.logger, logging.WARNING):
+#        scheduler._parse_joblist_output(0, TEXT_SQUEUE_TO_TEST, 'error message')
 #
 #
 #@pytest.mark.parametrize(
@@ -188,204 +168,84 @@ def test_resource_validation():
 #            # there should be something after the dash
 #            # there cannot be a dash after the colons
 #            scheduler._convert_time('1:2-3')
-#
-#
-#class TestSubmitScript:
-#    """Test submit script generation by SLURM scheduler plugin."""
-#
-#    def test_submit_script(self):
-#        """Test the creation of a simple submission script."""
-#        from aiida.common.datastructures import CodeRunMode
-#        from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
-#
-#        scheduler = SlurmScheduler()
-#
-#        job_tmpl = JobTemplate()
-#        job_tmpl.shebang = '#!/bin/bash'
-#        job_tmpl.uuid = str(uuid.uuid4())
-#        job_tmpl.job_resource = scheduler.create_job_resource(num_machines=1, num_mpiprocs_per_machine=1)
-#        job_tmpl.max_wallclock_seconds = 24 * 3600
-#        tmpl_code_info = JobTemplateCodeInfo()
-#        tmpl_code_info.cmdline_params = ['mpirun', '-np', '23', 'pw.x', '-npool', '1']
-#        tmpl_code_info.stdin_name = 'aiida.in'
-#        job_tmpl.codes_info = [tmpl_code_info]
-#        job_tmpl.codes_run_mode = CodeRunMode.SERIAL
-#
-#        submit_script_text = scheduler.get_submit_script(job_tmpl)
-#
-#        assert submit_script_text.startswith('#!/bin/bash')
-#
-#        assert '#SBATCH --no-requeue' in submit_script_text
-#        assert '#SBATCH --time=1-00:00:00' in submit_script_text
-#        assert '#SBATCH --nodes=1' in submit_script_text
-#
-#        assert "'mpirun' '-np' '23' 'pw.x' '-npool' '1' < 'aiida.in'" in submit_script_text
-#
-#    def test_submit_script_bad_shebang(self):
-#        """Test that first line of submit script is as expected."""
-#        from aiida.common.datastructures import CodeRunMode
-#        from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
-#
-#        scheduler = SlurmScheduler()
-#        tmpl_code_info = JobTemplateCodeInfo()
-#        tmpl_code_info.cmdline_params = ['mpirun', '-np', '23', 'pw.x', '-npool', '1']
-#        tmpl_code_info.stdin_name = 'aiida.in'
-#
-#        for shebang, expected_first_line in ((None, '#!/bin/bash'), ('', ''), ('NOSET', '#!/bin/bash')):
-#            job_tmpl = JobTemplate()
-#            if shebang == 'NOSET':
-#                pass
-#            else:
-#                job_tmpl.shebang = shebang
-#            job_tmpl.job_resource = scheduler.create_job_resource(num_machines=1, num_mpiprocs_per_machine=1)
-#            job_tmpl.codes_info = [tmpl_code_info]
-#            job_tmpl.codes_run_mode = CodeRunMode.SERIAL
-#
-#            submit_script_text = scheduler.get_submit_script(job_tmpl)
-#
-#            # This tests if the implementation correctly chooses the default:
-#            assert submit_script_text.split('\n', maxsplit=1)[0] == expected_first_line
-#
-#    def test_submit_script_with_num_cores_per_machine(self):
-#        """Test to verify if script works fine if we specify only
-#        num_cores_per_machine value.
-#        """
-#        from aiida.common.datastructures import CodeRunMode
-#        from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
-#
-#        scheduler = SlurmScheduler()
-#
-#        job_tmpl = JobTemplate()
-#        job_tmpl.shebang = '#!/bin/bash'
-#        job_tmpl.job_resource = scheduler.create_job_resource(
-#            num_machines=1, num_mpiprocs_per_machine=2, num_cores_per_machine=24
-#        )
-#        job_tmpl.uuid = str(uuid.uuid4())
-#        job_tmpl.max_wallclock_seconds = 24 * 3600
-#        tmpl_code_info = JobTemplateCodeInfo()
-#        tmpl_code_info.cmdline_params = ['mpirun', '-np', '23', 'pw.x', '-npool', '1']
-#        tmpl_code_info.stdin_name = 'aiida.in'
-#        job_tmpl.codes_info = [tmpl_code_info]
-#        job_tmpl.codes_run_mode = CodeRunMode.SERIAL
-#
-#        submit_script_text = scheduler.get_submit_script(job_tmpl)
-#
-#        assert '#SBATCH --no-requeue' in submit_script_text
-#        assert '#SBATCH --time=1-00:00:00' in submit_script_text
-#        assert '#SBATCH --nodes=1' in submit_script_text
-#        assert '#SBATCH --ntasks-per-node=2' in submit_script_text
-#        assert '#SBATCH --cpus-per-task=12' in submit_script_text
-#
-#        assert "'mpirun' '-np' '23' 'pw.x' '-npool' '1' < 'aiida.in'" in submit_script_text
-#
-#    def test_submit_script_with_num_cores_per_mpiproc(self):
-#        """Test to verify if scripts works fine if we pass only num_cores_per_mpiproc value"""
-#        from aiida.common.datastructures import CodeRunMode
-#        from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
-#
-#        scheduler = SlurmScheduler()
-#
-#        job_tmpl = JobTemplate()
-#        job_tmpl.shebang = '#!/bin/bash'
-#        job_tmpl.job_resource = scheduler.create_job_resource(
-#            num_machines=1, num_mpiprocs_per_machine=1, num_cores_per_mpiproc=24
-#        )
-#        job_tmpl.uuid = str(uuid.uuid4())
-#        job_tmpl.max_wallclock_seconds = 24 * 3600
-#        tmpl_code_info = JobTemplateCodeInfo()
-#        tmpl_code_info.cmdline_params = ['mpirun', '-np', '23', 'pw.x', '-npool', '1']
-#        tmpl_code_info.stdin_name = 'aiida.in'
-#        job_tmpl.codes_info = [tmpl_code_info]
-#        job_tmpl.codes_run_mode = CodeRunMode.SERIAL
-#
-#        submit_script_text = scheduler.get_submit_script(job_tmpl)
-#
-#        assert '#SBATCH --no-requeue' in submit_script_text
-#        assert '#SBATCH --time=1-00:00:00' in submit_script_text
-#        assert '#SBATCH --nodes=1' in submit_script_text
-#        assert '#SBATCH --ntasks-per-node=1' in submit_script_text
-#        assert '#SBATCH --cpus-per-task=24' in submit_script_text
-#
-#        assert "'mpirun' '-np' '23' 'pw.x' '-npool' '1' < 'aiida.in'" in submit_script_text
-#
-#    def test_submit_script_with_num_cores_per_machine_and_mpiproc1(self):
-#        """Test to verify if scripts works fine if we pass both
-#        num_cores_per_machine and num_cores_per_mpiproc correct values.
-#        It should pass in check:
-#        res.num_cores_per_mpiproc * res.num_mpiprocs_per_machine = res.num_cores_per_machine
-#        """
-#        from aiida.common.datastructures import CodeRunMode
-#        from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
-#
-#        scheduler = SlurmScheduler()
-#
-#        job_tmpl = JobTemplate()
-#        job_tmpl.shebang = '#!/bin/bash'
-#        job_tmpl.job_resource = scheduler.create_job_resource(
-#            num_machines=1, num_mpiprocs_per_machine=1, num_cores_per_machine=24, num_cores_per_mpiproc=24
-#        )
-#        job_tmpl.uuid = str(uuid.uuid4())
-#        job_tmpl.max_wallclock_seconds = 24 * 3600
-#        tmpl_code_info = JobTemplateCodeInfo()
-#        tmpl_code_info.cmdline_params = ['mpirun', '-np', '23', 'pw.x', '-npool', '1']
-#        tmpl_code_info.stdin_name = 'aiida.in'
-#        job_tmpl.codes_info = [tmpl_code_info]
-#        job_tmpl.codes_run_mode = CodeRunMode.SERIAL
-#
-#        submit_script_text = scheduler.get_submit_script(job_tmpl)
-#
-#        assert '#SBATCH --no-requeue' in submit_script_text
-#        assert '#SBATCH --time=1-00:00:00' in submit_script_text
-#        assert '#SBATCH --nodes=1' in submit_script_text
-#        assert '#SBATCH --ntasks-per-node=1' in submit_script_text
-#        assert '#SBATCH --cpus-per-task=24' in submit_script_text
-#
-#        assert "'mpirun' '-np' '23' 'pw.x' '-npool' '1' < 'aiida.in'" in submit_script_text
-#
-#    def test_submit_script_with_num_cores_per_machine_and_mpiproc2(self):
-#        """Test to verify if scripts works fine if we pass
-#        num_cores_per_machine and num_cores_per_mpiproc wrong values.
-#
-#        It should fail in check:
-#        res.num_cores_per_mpiproc * res.num_mpiprocs_per_machine = res.num_cores_per_machine
-#        """
-#        from aiida.schedulers.datastructures import JobTemplate
-#
-#        scheduler = SlurmScheduler()
-#
-#        job_tmpl = JobTemplate()
-#        with pytest.raises(ValueError, match='`num_cores_per_machine` must be equal to'):
-#            job_tmpl.job_resource = scheduler.create_job_resource(
-#                num_machines=1, num_mpiprocs_per_machine=1, num_cores_per_machine=24, num_cores_per_mpiproc=23
-#            )
-#
-#    def test_submit_script_rerunnable(self):
-#        """Test the creation of a submission script with the `rerunnable` option."""
-#        from aiida.common.datastructures import CodeRunMode
-#        from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
-#
-#        scheduler = SlurmScheduler()
-#
-#        # minimal job template setup
-#        job_tmpl = JobTemplate()
-#        job_tmpl.job_resource = scheduler.create_job_resource(num_machines=1, num_mpiprocs_per_machine=1)
-#        tmpl_code_info = JobTemplateCodeInfo()
-#        tmpl_code_info.cmdline_params = []
-#        job_tmpl.codes_info = [tmpl_code_info]
-#        job_tmpl.codes_run_mode = CodeRunMode.SERIAL
-#
-#        # Test the `rerunnable` setting
-#        job_tmpl.rerunnable = True
-#        submit_script_text = scheduler.get_submit_script(job_tmpl)
-#        assert '#SBATCH --requeue' in submit_script_text
-#        assert '#SBATCH --no-requeue' not in submit_script_text
-#
-#        job_tmpl.rerunnable = False
-#        submit_script_text = scheduler.get_submit_script(job_tmpl)
-#        assert '#SBATCH --requeue' not in submit_script_text
-#        assert '#SBATCH --no-requeue' in submit_script_text
-#
-#
+
+def test_submit_script():
+    """Test the creation of a simple submission script."""
+    VALID_SCRIPT_CONTENT = """#!/bin/bash
+#HQ --time-request=86400s
+#HQ --time-limit=86400s
+#HQ --cpus=2
+#HQ --resource mem=256
+
+'mpirun' '-np' '4' 'pw.x' '-npool' '1' < 'aiida.in'
+"""
+
+    scheduler = HyperQueueScheduler()
+
+    job_tmpl = JobTemplate()
+    job_tmpl.shebang = '#!/bin/bash'
+    job_tmpl.uuid = str(uuid.uuid4())
+    job_tmpl.job_resource = scheduler.create_job_resource(num_cpus=2, memory_mb=256)
+    job_tmpl.max_wallclock_seconds = 24 * 3600
+    tmpl_code_info = JobTemplateCodeInfo()
+    tmpl_code_info.cmdline_params = ['mpirun', '-np', '4', 'pw.x', '-npool', '1']
+    tmpl_code_info.stdin_name = 'aiida.in'
+    job_tmpl.codes_info = [tmpl_code_info]
+    job_tmpl.codes_run_mode = CodeRunMode.SERIAL
+
+    submit_script_text = scheduler.get_submit_script(job_tmpl)
+    
+    assert submit_script_text == VALID_SCRIPT_CONTENT
+
+def test_submit_script_mem_not_specified():
+    """Test if memory_mb not pass to resource, it will not specified in job script"""
+    scheduler = HyperQueueScheduler()
+
+    job_tmpl = JobTemplate()
+    job_tmpl.shebang = '#!/bin/bash'
+    job_tmpl.uuid = str(uuid.uuid4())
+    job_tmpl.job_resource = scheduler.create_job_resource(num_cpus=2)
+    job_tmpl.max_wallclock_seconds = 24 * 3600
+    tmpl_code_info = JobTemplateCodeInfo()
+    tmpl_code_info.cmdline_params = ['mpirun', '-np', '4', 'pw.x', '-npool', '1']
+    tmpl_code_info.stdin_name = 'aiida.in'
+    job_tmpl.codes_info = [tmpl_code_info]
+    job_tmpl.codes_run_mode = CodeRunMode.SERIAL
+
+    submit_script_text = scheduler.get_submit_script(job_tmpl)
+
+    assert "#HQ --resource mem" not in submit_script_text
+
+def test_submit_script_is_hq_valid(hq_env: HqEnv):
+    """The generated script can actually be run by hq"""
+    scheduler = HyperQueueScheduler()
+
+    job_tmpl = JobTemplate()
+    job_tmpl.job_name = 'echo hello'
+    job_tmpl.shebang = '#!/bin/bash'
+    job_tmpl.uuid = str(uuid.uuid4())
+    job_tmpl.job_resource = scheduler.create_job_resource(num_cpus=1)
+    job_tmpl.max_wallclock_seconds = 24 * 3600
+    tmpl_code_info = JobTemplateCodeInfo()
+    tmpl_code_info.cmdline_params = ['echo', 'Hello']
+    job_tmpl.codes_info = [tmpl_code_info]
+    job_tmpl.codes_run_mode = CodeRunMode.SERIAL
+
+    submit_script_text = scheduler.get_submit_script(job_tmpl)
+
+    hq_env.start_server()
+    hq_env.start_worker(cpus="2")
+    Path("_aiidasubmit.sh").write_text(submit_script_text)
+    hq_env.command(["submit", "_aiidasubmit.sh"])
+    table = hq_env.command(["job", "info", "1"], as_table=True)
+
+    assert table.get_row_value("Name") == "echo hello"
+    assert "cpus: 1 compact" in table.get_row_value("Resources")
+
+    wait_for_job_state(hq_env, 1, "FINISHED")
+    
+    assert table.get_row_value("State") == "FINISHED"
+
 #class TestJoblistCommand:
 #    """Tests of the issued squeue command."""
 #
