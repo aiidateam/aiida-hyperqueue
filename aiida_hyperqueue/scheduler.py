@@ -152,7 +152,7 @@ class HyperQueueScheduler(Scheduler):
             submit_script: the path of the submit script relative to the working
                 directory.
         """
-        submit_command = f"hq job submit {submit_script}"
+        submit_command = f"hq submit {submit_script}"
 
         self.logger.info(f"Submitting with: {submit_command}")
 

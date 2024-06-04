@@ -297,18 +297,18 @@ class HqEnv(Env):
             environment.update(env)
         stderr = subprocess.DEVNULL if ignore_stderr else subprocess.STDOUT
 
+        process = subprocess.Popen(
+            final_args,
+            stdout=subprocess.PIPE,
+            stderr=stderr,
+            cwd=cwd,
+            env=environment,
+            stdin=subprocess.PIPE if stdin is not None else subprocess.DEVNULL,
+        )
         if not wait:
-            return subprocess.Popen(final_args, stderr=stderr, cwd=cwd, env=environment)
+            return process
 
         else:
-            process = subprocess.Popen(
-                final_args,
-                stdout=subprocess.PIPE,
-                stderr=stderr,
-                cwd=cwd,
-                env=environment,
-                stdin=subprocess.PIPE if stdin is not None else subprocess.DEVNULL,
-            )
             stdout = process.communicate(stdin)[0].decode()
             if process.returncode != 0:
                 if expect_fail:

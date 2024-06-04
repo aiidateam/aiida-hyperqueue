@@ -16,6 +16,23 @@ from aiida_hyperqueue.scheduler import HyperQueueJobResource, HyperQueueSchedule
 from .conftest import HqEnv
 from .utils import wait_for_job_state
 
+@pytest.fixture
+def valid_submit_script():
+    scheduler = HyperQueueScheduler()
+
+    job_tmpl = JobTemplate()
+    job_tmpl.job_name = 'echo hello'
+    job_tmpl.shebang = '#!/bin/bash'
+    job_tmpl.uuid = str(uuid.uuid4())
+    job_tmpl.job_resource = scheduler.create_job_resource(num_cpus=1)
+    job_tmpl.max_wallclock_seconds = 24 * 3600
+    tmpl_code_info = JobTemplateCodeInfo()
+    tmpl_code_info.cmdline_params = ['echo', 'Hello']
+    job_tmpl.codes_info = [tmpl_code_info]
+    job_tmpl.codes_run_mode = CodeRunMode.SERIAL
+
+    return scheduler.get_submit_script(job_tmpl)
+
 def test_resource_validation():
     """Tests to verify that resources are correctly validated."""
     resource = HyperQueueJobResource(num_cpus=16, memory_mb=20)
@@ -49,6 +66,173 @@ def test_resource_validation():
     ):
         HyperQueueJobResource(num_cpus=4, memory_mb=1.2)
 
+def test_submit_command():
+    """Test submit command"""
+    scheduler = HyperQueueScheduler()
+
+    assert scheduler._get_submit_command('job.sh') == "hq submit job.sh"
+
+def test_parse_submit_command_output(hq_env: HqEnv, valid_submit_script):
+    """Test parsing the output of submit command"""
+    hq_env.start_server()
+    hq_env.start_worker(cpus="2")
+    Path("_aiidasubmit.sh").write_text(valid_submit_script)
+
+    process = hq_env.command(["submit", "_aiidasubmit.sh"], wait=False, ignore_stderr=True)
+    stdout = process.communicate()[0].decode()
+    stderr = ""
+    retval = process.returncode
+
+    assert retval == 0
+
+    scheduler = HyperQueueScheduler()
+    job_id = scheduler._parse_submit_output(retval, stdout, stderr)
+
+    assert job_id == "1"
+
+def test_submit_script():
+    """Test the creation of a simple submission script."""
+    VALID_SCRIPT_CONTENT = """#!/bin/bash
+#HQ --time-request=86400s
+#HQ --time-limit=86400s
+#HQ --cpus=2
+#HQ --resource mem=256
+
+'mpirun' '-np' '4' 'pw.x' '-npool' '1' < 'aiida.in'
+"""
+
+    scheduler = HyperQueueScheduler()
+
+    job_tmpl = JobTemplate()
+    job_tmpl.shebang = '#!/bin/bash'
+    job_tmpl.uuid = str(uuid.uuid4())
+    job_tmpl.job_resource = scheduler.create_job_resource(num_cpus=2, memory_mb=256)
+    job_tmpl.max_wallclock_seconds = 24 * 3600
+    tmpl_code_info = JobTemplateCodeInfo()
+    tmpl_code_info.cmdline_params = ['mpirun', '-np', '4', 'pw.x', '-npool', '1']
+    tmpl_code_info.stdin_name = 'aiida.in'
+    job_tmpl.codes_info = [tmpl_code_info]
+    job_tmpl.codes_run_mode = CodeRunMode.SERIAL
+
+    submit_script_text = scheduler.get_submit_script(job_tmpl)
+    
+    assert submit_script_text == VALID_SCRIPT_CONTENT
+
+def test_submit_script_mem_not_specified():
+    """Test if memory_mb not pass to resource, it will not specified in job script"""
+    scheduler = HyperQueueScheduler()
+
+    job_tmpl = JobTemplate()
+    job_tmpl.shebang = '#!/bin/bash'
+    job_tmpl.uuid = str(uuid.uuid4())
+    job_tmpl.job_resource = scheduler.create_job_resource(num_cpus=2)
+    job_tmpl.max_wallclock_seconds = 24 * 3600
+    tmpl_code_info = JobTemplateCodeInfo()
+    tmpl_code_info.cmdline_params = ['mpirun', '-np', '4', 'pw.x', '-npool', '1']
+    tmpl_code_info.stdin_name = 'aiida.in'
+    job_tmpl.codes_info = [tmpl_code_info]
+    job_tmpl.codes_run_mode = CodeRunMode.SERIAL
+
+    submit_script_text = scheduler.get_submit_script(job_tmpl)
+
+    assert "#HQ --resource mem" not in submit_script_text
+
+def test_submit_script_is_hq_valid(hq_env: HqEnv, valid_submit_script):
+    """The generated script can actually be run by hq"""
+    hq_env.start_server()
+    hq_env.start_worker(cpus="2")
+    Path("_aiidasubmit.sh").write_text(valid_submit_script)
+    hq_env.command(["submit", "_aiidasubmit.sh"])
+    table = hq_env.command(["job", "info", "1"], as_table=True)
+
+    assert table.get_row_value("Name") == "echo hello"
+    assert "cpus: 1 compact" in table.get_row_value("Resources")
+
+    wait_for_job_state(hq_env, 1, "FINISHED")
+    
+    assert table.get_row_value("State") == "FINISHED"
+
+#class TestJoblistCommand:
+#    """Tests of the issued squeue command."""
+#
+#    def test_joblist_single(self):
+#        """Test that asking for a single job results in duplication of the list."""
+#        scheduler = SlurmScheduler()
+#
+#        command = scheduler._get_joblist_command(jobs=['123'])
+#        assert '123,123' in command
+#
+#    def test_joblist_multi(self):
+#        """Test that asking for multiple jobs does not result in duplications."""
+#        scheduler = SlurmScheduler()
+#
+#        command = scheduler._get_joblist_command(jobs=['123', '456'])
+#        assert '123,456' in command
+#        assert '456,456' not in command
+#
+#
+#def test_parse_out_of_memory():
+#    """Test that for job that failed due to OOM `parse_output` return the `ERROR_SCHEDULER_OUT_OF_MEMORY` code."""
+#    scheduler = SlurmScheduler()
+#    stdout = ''
+#    stderr = ''
+#    detailed_job_info = {
+#        'retval': 0,
+#        'stderr': '',
+#        'stdout': 'Account|State|\nroot|OUT_OF_MEMORY|\n',
+#    }
+#
+#    exit_code = scheduler.parse_output(detailed_job_info, stdout, stderr)
+#    assert exit_code == CalcJob.exit_codes.ERROR_SCHEDULER_OUT_OF_MEMORY
+#
+#
+#def test_parse_node_failure():
+#    """Test that `ERROR_SCHEDULER_NODE_FAILURE` code is returned if `STATE == NODE_FAIL`."""
+#    scheduler = SlurmScheduler()
+#    detailed_job_info = {
+#        'retval': 0,
+#        'stderr': '',
+#        'stdout': 'Account|State|\nroot|NODE_FAIL|\n',
+#    }
+#
+#    exit_code = scheduler.parse_output(detailed_job_info, '', '')
+#    assert exit_code == CalcJob.exit_codes.ERROR_SCHEDULER_NODE_FAILURE
+#
+#
+#@pytest.mark.parametrize(
+#    'detailed_job_info, expected',
+#    [
+#        ('string', TypeError),  # Not a dictionary
+#        ({'stderr': ''}, ValueError),  # Key `stdout` missing
+#        ({'stdout': None}, TypeError),  # `stdout` is not a string
+#        ({'stdout': ''}, ValueError),  # `stdout` does not contain at least two lines
+#        (
+#            {'stdout': 'Account|State|\nValue|'},
+#            ValueError,
+#        ),  # `stdout` second line contains too few elements separated by pipe
+#    ],
+#)
+#def test_parse_output_invalid(detailed_job_info, expected):
+#    """Test `SlurmScheduler.parse_output` for various invalid arguments."""
+#    scheduler = SlurmScheduler()
+#
+#    with pytest.raises(expected):
+#        scheduler.parse_output(detailed_job_info, '', '')
+#
+#
+#def test_parse_output_valid():
+#    """Test `SlurmScheduler.parse_output` for valid arguments."""
+#    detailed_job_info = {'stdout': 'State|Account|\n||\n'}
+#    scheduler = SlurmScheduler()
+#    assert scheduler.parse_output(detailed_job_info, '', '') is None
+#
+#
+#def test_parse_submit_output_invalid_account():
+#    """Test ``SlurmScheduler._parse_submit_output`` returns exit code if stderr contains error about invalid account."""
+#    scheduler = SlurmScheduler()
+#    stderr = 'Batch job submission failed: Invalid account or account/partition combination specified'
+#    result = scheduler._parse_submit_output(1, '', stderr)
+#    assert result == CalcJob.exit_codes.ERROR_SCHEDULER_INVALID_ACCOUNT
 
 #def test_parse_common_joblist_output():
 #    """Test whether _parse_joblist_output can parse the squeue output"""
@@ -168,162 +352,3 @@ def test_resource_validation():
 #            # there should be something after the dash
 #            # there cannot be a dash after the colons
 #            scheduler._convert_time('1:2-3')
-
-def test_submit_script():
-    """Test the creation of a simple submission script."""
-    VALID_SCRIPT_CONTENT = """#!/bin/bash
-#HQ --time-request=86400s
-#HQ --time-limit=86400s
-#HQ --cpus=2
-#HQ --resource mem=256
-
-'mpirun' '-np' '4' 'pw.x' '-npool' '1' < 'aiida.in'
-"""
-
-    scheduler = HyperQueueScheduler()
-
-    job_tmpl = JobTemplate()
-    job_tmpl.shebang = '#!/bin/bash'
-    job_tmpl.uuid = str(uuid.uuid4())
-    job_tmpl.job_resource = scheduler.create_job_resource(num_cpus=2, memory_mb=256)
-    job_tmpl.max_wallclock_seconds = 24 * 3600
-    tmpl_code_info = JobTemplateCodeInfo()
-    tmpl_code_info.cmdline_params = ['mpirun', '-np', '4', 'pw.x', '-npool', '1']
-    tmpl_code_info.stdin_name = 'aiida.in'
-    job_tmpl.codes_info = [tmpl_code_info]
-    job_tmpl.codes_run_mode = CodeRunMode.SERIAL
-
-    submit_script_text = scheduler.get_submit_script(job_tmpl)
-    
-    assert submit_script_text == VALID_SCRIPT_CONTENT
-
-def test_submit_script_mem_not_specified():
-    """Test if memory_mb not pass to resource, it will not specified in job script"""
-    scheduler = HyperQueueScheduler()
-
-    job_tmpl = JobTemplate()
-    job_tmpl.shebang = '#!/bin/bash'
-    job_tmpl.uuid = str(uuid.uuid4())
-    job_tmpl.job_resource = scheduler.create_job_resource(num_cpus=2)
-    job_tmpl.max_wallclock_seconds = 24 * 3600
-    tmpl_code_info = JobTemplateCodeInfo()
-    tmpl_code_info.cmdline_params = ['mpirun', '-np', '4', 'pw.x', '-npool', '1']
-    tmpl_code_info.stdin_name = 'aiida.in'
-    job_tmpl.codes_info = [tmpl_code_info]
-    job_tmpl.codes_run_mode = CodeRunMode.SERIAL
-
-    submit_script_text = scheduler.get_submit_script(job_tmpl)
-
-    assert "#HQ --resource mem" not in submit_script_text
-
-def test_submit_script_is_hq_valid(hq_env: HqEnv):
-    """The generated script can actually be run by hq"""
-    scheduler = HyperQueueScheduler()
-
-    job_tmpl = JobTemplate()
-    job_tmpl.job_name = 'echo hello'
-    job_tmpl.shebang = '#!/bin/bash'
-    job_tmpl.uuid = str(uuid.uuid4())
-    job_tmpl.job_resource = scheduler.create_job_resource(num_cpus=1)
-    job_tmpl.max_wallclock_seconds = 24 * 3600
-    tmpl_code_info = JobTemplateCodeInfo()
-    tmpl_code_info.cmdline_params = ['echo', 'Hello']
-    job_tmpl.codes_info = [tmpl_code_info]
-    job_tmpl.codes_run_mode = CodeRunMode.SERIAL
-
-    submit_script_text = scheduler.get_submit_script(job_tmpl)
-
-    hq_env.start_server()
-    hq_env.start_worker(cpus="2")
-    Path("_aiidasubmit.sh").write_text(submit_script_text)
-    hq_env.command(["submit", "_aiidasubmit.sh"])
-    table = hq_env.command(["job", "info", "1"], as_table=True)
-
-    assert table.get_row_value("Name") == "echo hello"
-    assert "cpus: 1 compact" in table.get_row_value("Resources")
-
-    wait_for_job_state(hq_env, 1, "FINISHED")
-    
-    assert table.get_row_value("State") == "FINISHED"
-
-#class TestJoblistCommand:
-#    """Tests of the issued squeue command."""
-#
-#    def test_joblist_single(self):
-#        """Test that asking for a single job results in duplication of the list."""
-#        scheduler = SlurmScheduler()
-#
-#        command = scheduler._get_joblist_command(jobs=['123'])
-#        assert '123,123' in command
-#
-#    def test_joblist_multi(self):
-#        """Test that asking for multiple jobs does not result in duplications."""
-#        scheduler = SlurmScheduler()
-#
-#        command = scheduler._get_joblist_command(jobs=['123', '456'])
-#        assert '123,456' in command
-#        assert '456,456' not in command
-#
-#
-#def test_parse_out_of_memory():
-#    """Test that for job that failed due to OOM `parse_output` return the `ERROR_SCHEDULER_OUT_OF_MEMORY` code."""
-#    scheduler = SlurmScheduler()
-#    stdout = ''
-#    stderr = ''
-#    detailed_job_info = {
-#        'retval': 0,
-#        'stderr': '',
-#        'stdout': 'Account|State|\nroot|OUT_OF_MEMORY|\n',
-#    }
-#
-#    exit_code = scheduler.parse_output(detailed_job_info, stdout, stderr)
-#    assert exit_code == CalcJob.exit_codes.ERROR_SCHEDULER_OUT_OF_MEMORY
-#
-#
-#def test_parse_node_failure():
-#    """Test that `ERROR_SCHEDULER_NODE_FAILURE` code is returned if `STATE == NODE_FAIL`."""
-#    scheduler = SlurmScheduler()
-#    detailed_job_info = {
-#        'retval': 0,
-#        'stderr': '',
-#        'stdout': 'Account|State|\nroot|NODE_FAIL|\n',
-#    }
-#
-#    exit_code = scheduler.parse_output(detailed_job_info, '', '')
-#    assert exit_code == CalcJob.exit_codes.ERROR_SCHEDULER_NODE_FAILURE
-#
-#
-#@pytest.mark.parametrize(
-#    'detailed_job_info, expected',
-#    [
-#        ('string', TypeError),  # Not a dictionary
-#        ({'stderr': ''}, ValueError),  # Key `stdout` missing
-#        ({'stdout': None}, TypeError),  # `stdout` is not a string
-#        ({'stdout': ''}, ValueError),  # `stdout` does not contain at least two lines
-#        (
-#            {'stdout': 'Account|State|\nValue|'},
-#            ValueError,
-#        ),  # `stdout` second line contains too few elements separated by pipe
-#    ],
-#)
-#def test_parse_output_invalid(detailed_job_info, expected):
-#    """Test `SlurmScheduler.parse_output` for various invalid arguments."""
-#    scheduler = SlurmScheduler()
-#
-#    with pytest.raises(expected):
-#        scheduler.parse_output(detailed_job_info, '', '')
-#
-#
-#def test_parse_output_valid():
-#    """Test `SlurmScheduler.parse_output` for valid arguments."""
-#    detailed_job_info = {'stdout': 'State|Account|\n||\n'}
-#    scheduler = SlurmScheduler()
-#    assert scheduler.parse_output(detailed_job_info, '', '') is None
-#
-#
-#def test_parse_submit_output_invalid_account():
-#    """Test ``SlurmScheduler._parse_submit_output`` returns exit code if stderr contains error about invalid account."""
-#    scheduler = SlurmScheduler()
-#    stderr = 'Batch job submission failed: Invalid account or account/partition combination specified'
-#    result = scheduler._parse_submit_output(1, '', stderr)
-#    assert result == CalcJob.exit_codes.ERROR_SCHEDULER_INVALID_ACCOUNT
