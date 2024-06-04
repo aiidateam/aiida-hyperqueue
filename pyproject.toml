@@ -6,7 +6,8 @@ build-backend = "flit_core.buildapi"
 name = "aiida-hyperqueue"
 version = "0.1.0"
 authors = [
-  {name = "Marnik Bercx"}
+  {name = "Marnik Bercx"},
+  {name = "Jusong Yu"},
 ]
 description = "AiiDA plugin for the HyperQueue metascheduler"
 readme = "README.md"
@@ -20,7 +21,7 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python",
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 
 dependencies = [
     "aiida-core~=2.0",
@@ -39,14 +40,13 @@ docs = [
 ]
 tests = [
     "pgtest~=1.3.1",
-    "wheel~=0.31",
-    "coverage",
-    "pytest~=6.0",
-    "pytest-cov",
+    "coverage~=7.0",
+    "pytest~=7.0",
+    "pytest-cov~=4.1",
 ]
 pre-commit = [
-    "pre-commit~=2.2",
-    "pylint>=2.5.0,<2.9"
+    "pre-commit~=3.5",
+    'mypy~=1.10.0',
 ]
 
 [project.entry-points.'aiida.schedulers']
@@ -54,18 +54,6 @@ pre-commit = [
 
 [project.entry-points.'aiida.cmdline.data']
 "hyperqueue" = "aiida_hyperqueue.cli:data_cli"
-
-[tool.pylint.format]
-max-line-length = 125
-
-[tool.pylint.messages_control]
-disable = [
-    "too-many-ancestors",
-    "too-many-arguments",
-    "invalid-name",
-    "duplicate-code",
-    "anomalous-backslash-in-string",
-]
 
 [tool.pytest.ini_options]
 python_files = "test_*.py example_*.py"

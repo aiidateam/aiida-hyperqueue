@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-""" Tests for command line interface.
+"""Tests for command line interface."""
 
-"""
 import pytest
 
 from aiida_hyperqueue.scheduler import HyperQueueJobResource
@@ -14,4 +13,4 @@ def test_hyperqueue_resource():
     assert res.memory_mb == 20
 
     with pytest.raises(ValueError):
-        res = HyperQueueJobResource(foo='bar')
+        res = HyperQueueJobResource(foo="bar")
