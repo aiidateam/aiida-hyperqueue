@@ -102,15 +102,16 @@ class HyperQueueScheduler(Scheduler):
            job_tmpl: an JobTemplate instance with relevant parameters set.
         """
         hq_options = []
+        prefix = "#HQ"
 
         if job_tmpl.job_name:
-            hq_options.append(f'--name="{job_tmpl.job_name}"')
+            hq_options.append(f'{prefix} --name="{job_tmpl.job_name}"')
 
         if job_tmpl.sched_output_path:
-            hq_options.append(f'--stdout={job_tmpl.sched_output_path}')
+            hq_options.append(f'{prefix} --stdout={job_tmpl.sched_output_path}')
 
         if job_tmpl.sched_error_path:
-            hq_options.append(f'--stderr={job_tmpl.sched_error_path}')
+            hq_options.append(f'{prefix} --stderr={job_tmpl.sched_error_path}')
 
         if job_tmpl.max_wallclock_seconds:
             # `--time-request` will only let the HQ job start on the worker in case there is still enough time available
@@ -120,18 +121,21 @@ class HyperQueueScheduler(Scheduler):
             # This is the typical behavior of schedulers and avoids that if one run enters an infinite loop,
             # it burns all the time of the worker.
             hq_options.append(
-                f'--time-request={job_tmpl.max_wallclock_seconds}s --time-limit={job_tmpl.max_wallclock_seconds}s'
+                f'{prefix} --time-request={job_tmpl.max_wallclock_seconds}s'
+            )
+            hq_options.append(
+                f'{prefix} --time-limit={job_tmpl.max_wallclock_seconds}s'
             )
 
         if job_tmpl.priority:
             # HQ jobs can be assigned priority, where jobs with a higher priority will be executed first. The default
             # priority is 0.
-            hq_options.append(f'--priority={job_tmpl.priority}')
+            hq_options.append(f'{prefix} --priority={job_tmpl.priority}')
 
-        hq_options.append(f'--cpus={job_tmpl.job_resource.num_cpus}')
-        hq_options.append(f'--resource mem={job_tmpl.job_resource.memory_mb}')
+        hq_options.append(f'{prefix} --cpus={job_tmpl.job_resource.num_cpus}')
+        hq_options.append(f'{prefix} --resource mem={job_tmpl.job_resource.memory_mb}')
 
-        return '#HQ ' + ' '.join(hq_options)
+        return '\n'.join(hq_options)
 
     def _get_submit_command(self, submit_script: str) -> str:
         """
@@ -142,11 +146,9 @@ class HyperQueueScheduler(Scheduler):
                 directory.
         """
         submit_command = (
-            f"chmod 774 {submit_script}; options=$(grep '#HQ' {submit_script});"
-            f"sed -i s/\\'srun\\'/srun\ --cpu-bind=map_cpu:\$HQ_CPUS/  {submit_script};"
-            f'hq job submit ${{options:3}} ./{submit_script}')
+            f'hq job submit {submit_script}')
 
-        self.logger.info(f'submitting with: {submit_command}')
+        self.logger.info(f'Submitting with: {submit_command}')
 
         return submit_command
 
