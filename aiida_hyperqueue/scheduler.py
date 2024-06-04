@@ -52,27 +52,32 @@ class HyperQueueJobResource(JobResource):
         :return: attribute dictionary with the parsed parameters populated
         :raises ValueError: if the resources are invalid or incomplete
         """
-
         resources = AttributeDict()
 
         try:
-            resources.num_cpus = int(kwargs.pop("num_cpus"))
-        except ValueError as exception:
-            raise ValueError("`num_cpus` must be an integer") from exception
+            resources.num_cpus = kwargs.pop("num_cpus")
+        except KeyError:
+            raise KeyError("Must specify `num_cpus`")
+        
+
 
         try:
-            resources.memory_mb = int(kwargs.pop("memory_mb"))
+            resources.memory_mb = kwargs.pop("memory_mb")
         except KeyError:
             resources.memory_mb = 0  # Use all the memory on the worker
-        except ValueError as exception:
-            raise ValueError("`memory_mb` must be an integer") from exception
+
+        if not isinstance(resources.num_cpus, int):
+            raise ValueError("`num_cpus` must be an integer")
+
+        if not isinstance(resources.memory_mb, int):
+            raise ValueError("`memory_mb` must be an integer")
 
         return resources
 
     @classmethod
     def accepts_default_mpiprocs_per_machine(cls):
         """Return True if this subclass accepts a `default_mpiprocs_per_machine` key, False otherwise."""
-        return True
+        return False
 
     def get_tot_num_mpiprocs(self):
         """Return the total number of cpus of this job resource."""

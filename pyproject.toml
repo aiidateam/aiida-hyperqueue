@@ -58,8 +58,5 @@ pre-commit = [
 [tool.pytest.ini_options]
 python_files = "test_*.py example_*.py"
 filterwarnings = [
-    "ignore::DeprecationWarning:aiida:",
-    "ignore::DeprecationWarning:plumpy:",
-    "ignore::DeprecationWarning:django:",
-    "ignore::DeprecationWarning:yaml:",
+    'ignore:Creating AiiDA configuration folder.*:UserWarning',
 ]
