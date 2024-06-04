@@ -58,19 +58,17 @@ class HyperQueueJobResource(JobResource):
             resources.num_cpus = kwargs.pop("num_cpus")
         except KeyError:
             raise KeyError("Must specify `num_cpus`")
-        
-
+        else:
+            if not isinstance(resources.num_cpus, int):
+                raise ValueError("`num_cpus` must be an integer")
 
         try:
             resources.memory_mb = kwargs.pop("memory_mb")
         except KeyError:
-            resources.memory_mb = 0  # Use all the memory on the worker
-
-        if not isinstance(resources.num_cpus, int):
-            raise ValueError("`num_cpus` must be an integer")
-
-        if not isinstance(resources.memory_mb, int):
-            raise ValueError("`memory_mb` must be an integer")
+            resources.memory_mb = None  # Use all availble the memory on the worker
+        else:
+            if not isinstance(resources.memory_mb, int):
+                raise ValueError("`memory_mb` must be an integer")
 
         return resources
 
@@ -139,7 +137,10 @@ class HyperQueueScheduler(Scheduler):
             hq_options.append(f"{prefix} --priority={job_tmpl.priority}")
 
         hq_options.append(f"{prefix} --cpus={job_tmpl.job_resource.num_cpus}")
-        hq_options.append(f"{prefix} --resource mem={job_tmpl.job_resource.memory_mb}")
+
+        mem = job_tmpl.job_resource.memory_mb
+        if mem is not None:
+            hq_options.append(f"{prefix} --resource mem={mem}")
 
         return "\n".join(hq_options)
 
