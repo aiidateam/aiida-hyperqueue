@@ -1,65 +1,11 @@
-# -*- coding: utf-8 -*-
-"""Command line interface (CLI) for aiida_hyperqueue."""
-
 import click
+
 from aiida.cmdline.params import options, arguments
-from aiida.cmdline.utils import decorators, echo
-from aiida.cmdline.commands.cmd_data import verdi_data
+from aiida.cmdline.utils import echo
 
+from .root import cmd_root
 
-@verdi_data.group("hyperqueue")
-def data_cli():
-    """Command line interface for aiida-hyperqueue"""
-
-
-@data_cli.group("server")
-def server_group():
-    """Commands for interacting with the HQ server."""
-
-
-@server_group.command("start")
-@arguments.COMPUTER()
-@decorators.with_dbenv()
-def start_cmd(computer):
-    """Start the HyperQueue server."""
-
-    with computer.get_transport() as transport:
-        retval, _, _ = transport.exec_command_wait("hq server info")
-
-    if retval == 0:
-        echo.echo_info("server is already running!")
-        return
-
-    with computer.get_transport() as transport:
-        retval, _, stderr = transport.exec_command_wait(
-            "nohup hq server start 1>$HOME/.hq-stdout 2>$HOME/.hq-stderr &"
-        )
-
-    if retval != 0:
-        echo.echo_critical(f"unable to start the server: {stderr}")
-
-    echo.echo_success("HQ server started!")
-
-
-@server_group.command("info")
-@arguments.COMPUTER()
-@decorators.with_dbenv()
-def info_cmd(computer):
-    """Get information on the HyperQueue server."""
-
-    with computer.get_transport() as transport:
-        retval, stdout, stderr = transport.exec_command_wait("hq server info")
-
-    if retval != 0:
-        echo.echo_critical(
-            f"cannot obtain HyperQueue server information: {stderr}\n"
-            "Try starting the server with `verdi data hyperqueue server start`."
-        )
-
-    echo.echo(stdout)
-
-
-@data_cli.group("alloc")
+@cmd_root.group("alloc")
 def alloc_group():
     """Commands to configure HQ allocations."""
 
@@ -102,13 +48,13 @@ def alloc_group():
     default=1,
     help=("Option to allow pooled jobs to launch on multiple nodes."),
 )
-@decorators.with_dbenv()
-def add_cmd(
+def cmd_add(
     slurm_options, computer, time_limit, hyper_threading, backlog, workers_per_alloc
 ):
     """Add a new allocation to the HQ server."""
 
-    hyper = "" if hyper_threading else "--cpus no-ht"
+    # from hq==0.13.0: ``--cpus=no-ht`` is now changed to a flag ``--no-hyper-threading``
+    hyper = "" if hyper_threading else "--no-hyper-threading"
 
     with computer.get_transport() as transport:
         retval, _, stderr = transport.exec_command_wait(
@@ -124,8 +70,7 @@ def add_cmd(
 
 @alloc_group.command("list")
 @arguments.COMPUTER()
-@decorators.with_dbenv()
-def list_cmd(computer):
+def cmd_list(computer):
     """List the allocations on the HQ server."""
 
     with computer.get_transport() as transport:
@@ -140,8 +85,7 @@ def list_cmd(computer):
 @alloc_group.command("remove")
 @click.argument("alloc_id")
 @options.COMPUTER(required=True)
-@decorators.with_dbenv()
-def remove_cmd(alloc_id, computer):
+def cmd_remove(alloc_id, computer):
     """Remove an allocation from the HQ server."""
 
     with computer.get_transport() as transport:

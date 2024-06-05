@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import contextlib
 import json
 import os
@@ -20,6 +21,7 @@ PYTEST_DIR = Path(__file__)
 ROOT_DIR = PYTEST_DIR.parent
 BIN_DIR = ROOT_DIR / "target"
 
+
 def pytest_sessionstart(session):
     # Download the hq binary before session start
     if (BIN_DIR / "hq").exists():
@@ -33,6 +35,7 @@ def pytest_sessionstart(session):
     result = subprocess.run(install_command, shell=True)
     if result.returncode != 0:
         raise Exception(f"Installation failed with return code {result.returncode}")
+
 
 def get_hq_binary(debug):
     return BIN_DIR / "hq"
@@ -53,7 +56,9 @@ class Env:
         self.processes = []
         self.work_path = work_path
 
-    def start_process(self, name, args, env=None, catch_io=True, cwd=None, final_check=True):
+    def start_process(
+        self, name, args, env=None, catch_io=True, cwd=None, final_check=True
+    ):
         cwd = str(cwd or self.work_path)
         logfile = (self.work_path / name).with_suffix(".out")
         print(f"Starting process {name} with logfile {logfile}")
@@ -69,7 +74,9 @@ class Env:
                 )
         else:
             p = subprocess.Popen(args, cwd=cwd, env=env)
-        self.processes.append(ManagedProcess(name=name, process=p, final_check=final_check))
+        self.processes.append(
+            ManagedProcess(name=name, process=p, final_check=final_check)
+        )
         return p
 
     def check_process_exited(self, process: subprocess.Popen, expected_code=0):
@@ -83,7 +90,9 @@ class Env:
                     elif expected_code is not None:
                         assert process.returncode == expected_code
 
-                    self.processes = [p for p in self.processes if p.process is not process]
+                    self.processes = [
+                        p for p in self.processes if p.process is not process
+                    ]
                     return False
             raise Exception(f"Process with pid {process.pid} not found")
 
@@ -93,7 +102,11 @@ class Env:
         """Checks that everything is still running"""
         for p in self.processes:
             if p.final_check and p.process.poll() is not None:
-                raise Exception("Process {0} crashed (log in {1}/{0}.out)".format(p.name, self.work_path))
+                raise Exception(
+                    "Process {0} crashed (log in {1}/{0}.out)".format(
+                        p.name, self.work_path
+                    )
+                )
 
     def kill_all(self):
         self.sort_processes_for_kill()
@@ -163,7 +176,9 @@ class HqEnv(Env):
         args += ["server", "start"]
         return args
 
-    def start_server(self, server_dir="hq-server", args=None, env=None) -> subprocess.Popen:
+    def start_server(
+        self, server_dir="hq-server", args=None, env=None
+    ) -> subprocess.Popen:
         self.server_dir = os.path.join(self.work_path, server_dir)
         environment = self.make_default_env()
         if env:
@@ -222,7 +237,9 @@ class HqEnv(Env):
             worker_args += ["--cpus", str(cpus)]
         if args:
             worker_args += list(args)
-        r = self.start_process(hostname, worker_args, final_check=final_check, env=worker_env)
+        r = self.start_process(
+            hostname, worker_args, final_check=final_check, env=worker_env
+        )
 
         if wait_for_start:
             print(wait_for_start)
@@ -313,11 +330,15 @@ class HqEnv(Env):
             if process.returncode != 0:
                 if expect_fail:
                     if expect_fail not in stdout:
-                        raise Exception(f"Command should failed with message '{expect_fail}' but got:\n{stdout}")
+                        raise Exception(
+                            f"Command should failed with message '{expect_fail}' but got:\n{stdout}"
+                        )
                     else:
                         return
                 print(f"Process output: {stdout}")
-                raise Exception(f"Process failed with exit-code {process.returncode}\n\n{stdout}")
+                raise Exception(
+                    f"Process failed with exit-code {process.returncode}\n\n{stdout}"
+                )
             if expect_fail is not None:
                 raise Exception("Command should failed")
             if as_table:

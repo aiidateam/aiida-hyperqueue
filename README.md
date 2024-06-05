@@ -13,3 +13,7 @@ AiiDA plugin for the [HyperQueue](https://github.com/It4innovations/hyperqueue) 
 
 Allows task farming on Slurm machines through the submission of AiiDA calculations to the [HyperQueue](https://github.com/It4innovations/hyperqueue) metascheduler.
 See the [Documentation](http://aiida-hyperqueue.readthedocs.io/) for more information on how to install and use the plugin.
+
+## For developers
+
+To control the loglevel of command, since we use the `echo` module from aiida, the CLI loglever can be set through `logging.verdi_loglevel`.

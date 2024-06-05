@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import socket
 from contextlib import closing
 
