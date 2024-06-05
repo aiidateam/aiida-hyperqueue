@@ -52,8 +52,8 @@ pre-commit = [
 [project.entry-points.'aiida.schedulers']
 "hyperqueue" = "aiida_hyperqueue.scheduler:HyperQueueScheduler"
 
-[project.entry-points.'aiida.cmdline.data']
-"hyperqueue" = "aiida_hyperqueue.cli:data_cli"
+[project.scripts]
+aiida-hq = 'aiida_hyperqueue.cli:cmd_root'
 
 [tool.pytest.ini_options]
 python_files = "test_*.py example_*.py"
