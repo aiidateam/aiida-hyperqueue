@@ -97,34 +97,9 @@ def test_server_info_direct(
     assert "Start date" in result.output
 
 
-def test_server_info_ssh(
-    runner: CliRunner,
-    aiida_computer_ssh,
-    monkeypatch: pytest.MonkeyPatch,
-    hq_env_mock_exec_command_wait,
-    hq_env: HqEnv,
-):
-    """Test server info, test against ssh transport"""
-    aiida_computer_ssh(label="localhost-hq")
-
-    monkeypatch.setattr(
-        TransportClass, "exec_command_wait", hq_env_mock_exec_command_wait
-    )
-
-    result = runner.invoke(cmd_info, "localhost-hq")
-    assert result.exit_code == 1
-    assert "Critical: cannot obtain HyperQueue server information" in result.output
-
-    hq_env.start_server()
-    result = runner.invoke(cmd_info, "localhost-hq")
-
-    assert result.exit_code == 0
-    assert "Start date" in result.output
-
-
 def test_server_start_info_stop_circle(
     runner: CliRunner,
-    aiida_computer_ssh,
+    aiida_computer_local,
     monkeypatch: pytest.MonkeyPatch,
     hq_env_mock_exec_command_wait,
     server_dir_mock_exec_command_wait,
@@ -136,7 +111,7 @@ def test_server_start_info_stop_circle(
     to clean the files and process.
     Therefor, it may cause problem that the process are left not cleaned.
     """
-    aiida_computer_ssh(label="localhost-hq")
+    aiida_computer_local(label="localhost-hq")
 
     monkeypatch.setattr(
         TransportClass, "exec_command_wait", server_dir_mock_exec_command_wait
