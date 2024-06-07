@@ -139,3 +139,4 @@ def test_server_start_info_stop_circle(runner: CliRunner, aiida_computer_ssh, mo
 
     assert result.exit_code == 1
     assert "Critical: cannot obtain HyperQueue server information" in result.output
+

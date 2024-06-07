@@ -22,11 +22,15 @@ from .root import cmd_root
     help="remote bin path hq will stored.",
 )
 @click.option(
+    "--write-bashrc/--no-write-bashrc",
+    default=True,
+    help="write the bin path to bashrc.",
+)
+@click.option(
     "--hq-version", type=str, default="0.19.0", help="the hq version will be installed."
 )
-# TODO: separate the bashrc write and make it optional.
 # TODO: should also support different arch binary??
-def cmd_install(computer: orm.Computer, remote_bin_dir: Path, hq_version: str):
+def cmd_install(computer: orm.Computer, remote_bin_dir: Path, hq_version: str, write_bashrc: bool):
     """Install the hq binary to the computer through the transport"""
 
     # The minimal hq version we support is 0.13.0, check the minor version
@@ -95,15 +99,16 @@ def cmd_install(computer: orm.Computer, remote_bin_dir: Path, hq_version: str):
             transport.exec_command_wait(f"chmod +x {str(remote_bin_dir / 'hq')}")
 
             # write to bashrc
-            identity_str = "by aiida-hq"
-            retval, _, stderr = transport.exec_command_wait(
-                f"grep -q '# {identity_str}' ~/.bashrc || echo '# {identity_str}\nexport PATH=$HOME/bin:$PATH' >> ~/.bashrc"
-            )
-
-            if retval != 0:
-                echo.echo_critical(
-                    f"Not able to set set the path $HOME/bin to your remote bashrc, try to do it manually.\n"
-                    f"Info: {stderr}"
+            if write_bashrc:
+                identity_str = "by aiida-hq"
+                retval, _, stderr = transport.exec_command_wait(
+                    f"grep -q '# {identity_str}' ~/.bashrc || echo '# {identity_str}\nexport PATH=$HOME/bin:$PATH' >> ~/.bashrc"
                 )
 
-    echo.echo_success("The hq binary installed in remote")
+                if retval != 0:
+                    echo.echo_critical(
+                        f"Not able to set set the path $HOME/bin to your remote bashrc, try to do it manually.\n"
+                        f"Info: {stderr}"
+                    )
+
+    echo.echo_success(f"The hq binary installed into remote {remote_bin_dir}")
