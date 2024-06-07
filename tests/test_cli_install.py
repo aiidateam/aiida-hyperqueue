@@ -10,8 +10,8 @@ def runner():
     return CliRunner()
 
 
-def test_install(runner, tmp_path, aiida_computer_ssh):
-    aiida_computer_ssh(label="localhost-hq")
+def test_install(runner, tmp_path, aiida_computer_local):
+    aiida_computer_local(label="localhost-hq")
 
     version = "0.19.0"
     result = runner.invoke(
