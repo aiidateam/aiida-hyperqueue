@@ -162,14 +162,16 @@ def test_get_and_parse_joblist(hq_env: HqEnv):
     """Test whether _parse_joblist_output can parse the hq job list output"""
     scheduler = HyperQueueScheduler()
 
-    joblist_command = scheduler._get_joblist_command().split(' ')[1:]
+    joblist_command = scheduler._get_joblist_command().split(" ")[1:]
 
     hq_env.start_server()
 
     # waiting and cancel
     hq_env.command(["submit", "--", "bash", "-c", "echo '1 canceled'"])
     hq_env.command(["submit", "--", "bash", "-c", "echo '2 waiting'"])
-    hq_env.command(["submit", "--", "bash", "-c", "echoooo '3 failed'"])    # This job will failed
+    hq_env.command(
+        ["submit", "--", "bash", "-c", "echoooo '3 failed'"]
+    )  # This job will failed
 
     r = hq_env.command(["job", "cancel", "1"])
     assert "Job 1 canceled" in r
@@ -178,7 +180,7 @@ def test_get_and_parse_joblist(hq_env: HqEnv):
 
     # Test parse waiting
     job_info_list = scheduler._parse_joblist_output(0, joblist, "")
-    
+
     assert len(job_info_list) == 2
 
     for job_info in job_info_list:
@@ -190,7 +192,6 @@ def test_get_and_parse_joblist(hq_env: HqEnv):
 
     wait_for_job_state(hq_env, 2, "FINISHED")
     wait_for_job_state(hq_env, 3, "FAILED")
-
 
     # Test parse running
     hq_env.command(["submit", "--", "sleep", "1"])
@@ -205,4 +206,3 @@ def test_get_and_parse_joblist(hq_env: HqEnv):
     assert len(job_info_list) == 1
     assert job_info_list[0].job_state == JobState.RUNNING
     assert job_info_list[0].title == "sleep"
-

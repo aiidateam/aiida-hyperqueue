@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 import click
 
 from aiida.cmdline.params import options, arguments
 from aiida.cmdline.utils import echo
 
 from .root import cmd_root
+
 
 @cmd_root.group("alloc")
 def alloc_group():

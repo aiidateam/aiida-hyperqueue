@@ -7,14 +7,12 @@
 # For further information on the license, see the LICENSE.txt file        #
 # For further information please visit http://www.aiida.net               #
 ###########################################################################
-"""Plugin for the HyperQueue meta scheduler.
-"""
+"""Plugin for the HyperQueue meta scheduler."""
 
 import re
-from typing import Union, Optional
+import typing as t
 
 from aiida.common.extendeddicts import AttributeDict
-from aiida.common.exceptions import FeatureNotAvailable
 from aiida.schedulers import Scheduler, SchedulerError
 from aiida.schedulers.datastructures import JobInfo, JobState, JobResource, JobTemplate
 
@@ -85,8 +83,7 @@ class HyperQueueJobResource(JobResource):
 
 
 class HyperQueueScheduler(Scheduler):
-    """Support for the HyperQueue scheduler (https://it4innovations.github.io/hyperqueue/stable/).
-    """
+    """Support for the HyperQueue scheduler (https://it4innovations.github.io/hyperqueue/stable/)."""
 
     _logger = Scheduler._logger.getChild("hyperqueue")
 
@@ -200,7 +197,7 @@ class HyperQueueScheduler(Scheduler):
         )
 
     def _get_joblist_command(
-        self, jobs: Optional[list] = None, user: Optional[str] = None
+        self, jobs: t.Optional[list] = None, user: t.Optional[str] = None
     ) -> str:
         """Return the ``hq`` command for listing the active jobs.
 
@@ -247,8 +244,7 @@ class HyperQueueScheduler(Scheduler):
         return job_info_list
 
     def _get_kill_command(self, jobid):
-        """Return the command to kill the job with specified jobid.
-        """
+        """Return the command to kill the job with specified jobid."""
         submit_command = f"hq job cancel {jobid}"
 
         self.logger.info(f"killing job {jobid}")
