@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 import click
 
 from aiida.cmdline.utils import echo
 
 from .root import cmd_root
 from .params import arguments
+
 
 @cmd_root.group("server")
 def server_group():
@@ -12,7 +14,13 @@ def server_group():
 
 @server_group.command("start")
 @arguments.COMPUTER()
-@click.option("-d", "--domain", required=False, type=click.STRING, help="domain that will attached to the `hostname` of remote.")
+@click.option(
+    "-d",
+    "--domain",
+    required=False,
+    type=click.STRING,
+    help="domain that will attached to the `hostname` of remote.",
+)
 def cmd_start(computer, domain: str):
     """Start the HyperQueue server."""
 
@@ -32,16 +40,20 @@ def cmd_start(computer, domain: str):
         start_command_lst = ["nohup", "hq", "server", "start"]
 
         if domain is not None:
-            retval, stdout, stderr = transport.exec_command_wait(
-                "hostname" 
-            )
+            retval, stdout, stderr = transport.exec_command_wait("hostname")
             if retval != 0:
                 echo.echo_critical(f"unable to get the hostname: {stderr}")
             else:
                 hostname = stdout.strip()
                 start_command_lst.extend(["--host", f"{hostname}.{domain}"])
 
-        start_command_lst.extend(["1>$HOME/.hq-stdout", "2>$HOME/.hq-stderr", "&",])
+        start_command_lst.extend(
+            [
+                "1>$HOME/.hq-stdout",
+                "2>$HOME/.hq-stderr",
+                "&",
+            ]
+        )
         start_command = " ".join(start_command_lst)
 
         echo.echo_debug(f"Run start command {start_command} on the remote")
@@ -58,6 +70,7 @@ def cmd_start(computer, domain: str):
 
     echo.echo_success("HQ server started!")
 
+
 @server_group.command("stop")
 @arguments.COMPUTER()
 def cmd_stop(computer):
@@ -73,14 +86,13 @@ def cmd_stop(computer):
     echo.echo_info("Stop the hq server will close all allocs.")
 
     with computer.get_transport() as transport:
-        retval, _, stderr = transport.exec_command_wait(
-            "hq server stop"
-        )
+        retval, _, stderr = transport.exec_command_wait("hq server stop")
 
     if retval != 0:
         echo.echo_critical(f"unable to stop the server: {stderr}")
 
     echo.echo_success("HQ server stopped!")
+
 
 @server_group.command("restart")
 @arguments.COMPUTER()

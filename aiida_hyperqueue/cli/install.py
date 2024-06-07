@@ -30,14 +30,16 @@ from .root import cmd_root
     "--hq-version", type=str, default="0.19.0", help="the hq version will be installed."
 )
 # TODO: should also support different arch binary??
-def cmd_install(computer: orm.Computer, remote_bin_dir: Path, hq_version: str, write_bashrc: bool):
+def cmd_install(
+    computer: orm.Computer, remote_bin_dir: Path, hq_version: str, write_bashrc: bool
+):
     """Install the hq binary to the computer through the transport"""
 
     # The minimal hq version we support is 0.13.0, check the minor version
     try:
-        _, minor, _ = hq_version.split('.')
+        _, minor, _ = hq_version.split(".")
     except ValueError as e:
-        echo.echo_critical(f"Cannot parse the version {hq_version}: {e}") 
+        echo.echo_critical(f"Cannot parse the version {hq_version}: {e}")
     else:
         if int(minor) < 13:
             # `--no-hyper-threading` replace `--cpus=no-ht` from 0.13.0
@@ -78,9 +80,13 @@ def cmd_install(computer: orm.Computer, remote_bin_dir: Path, hq_version: str, w
         # TODO: try not override if the binary exist, put has overwrite=True as default
         with computer.get_transport() as transport:
             # Get the abs path of remote bin dir
-            retval, stdout, stderr = transport.exec_command_wait(f"echo {str(remote_bin_dir)}")
-            if retval !=0:
-                echo.echo_critical(f"Not able to parse remote bin dir {remote_bin_dir}, exit_code={retval}")
+            retval, stdout, stderr = transport.exec_command_wait(
+                f"echo {str(remote_bin_dir)}"
+            )
+            if retval != 0:
+                echo.echo_critical(
+                    f"Not able to parse remote bin dir {remote_bin_dir}, exit_code={retval}"
+                )
             else:
                 remote_bin_dir = Path(stdout.strip())
 

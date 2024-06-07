@@ -4,50 +4,12 @@ on: [push, pull_request]
 
 jobs:
 
-  pre-commit:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
-    - name: Install python dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -e .[pre-commit,tests]
-    - name: Run pre-commit
-      run: |
-        pre-commit install
-        pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
-
   tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       matrix:
         python-version: ["3.10"]
-        backend: ['sqlalchemy']
-
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_DB: test_${{ matrix.backend }}
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_HOST_AUTH_METHOD: trust
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
 
     steps:
     - uses: actions/checkout@v3
@@ -63,11 +25,9 @@ jobs:
         pip install -e .[tests]
 
     - name: Run test suite
-      env:
-        AIIDA_TEST_BACKEND: ${{ matrix.backend }}
-        # show timings of tests
-        PYTEST_ADDOPTS: "--durations=0"
-      run: py.test --cov aiida_hyperqueue --cov-append .
+      run: |
+        chmod og-rw ~
+        pytest --cov aiida_hyperqueue --cov-append .
 
   docs:
     runs-on: ubuntu-latest

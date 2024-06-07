@@ -1,11 +1,14 @@
+# -*- coding: utf-8 -*-
 import pytest
 from click.testing import CliRunner
 
 from aiida.transports.transport import Transport as TransportClass
 
+
 @pytest.fixture
 def runner():
     return CliRunner()
+
 
 original_exec_command_wait = TransportClass.exec_command_wait
 
