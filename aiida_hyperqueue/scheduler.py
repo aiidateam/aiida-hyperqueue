@@ -7,8 +7,7 @@
 # For further information on the license, see the LICENSE.txt file        #
 # For further information please visit http://www.aiida.net               #
 ###########################################################################
-"""
-Plugin for the HyperQueue meta scheduler.
+"""Plugin for the HyperQueue meta scheduler.
 """
 
 import re
@@ -39,8 +38,7 @@ class HyperQueueJobResource(JobResource):
     }
 
     def __init__(self, **kwargs):
-        """
-        Initialize the job resources from the passed arguments (the valid keys can be
+        """Initialize the job resources from the passed arguments (the valid keys can be
         obtained with the function self.get_valid_keys()).
 
         :raises ValueError: if the resources are invalid or incomplete
@@ -87,8 +85,7 @@ class HyperQueueJobResource(JobResource):
 
 
 class HyperQueueScheduler(Scheduler):
-    """
-    Support for the HyperQueue scheduler (https://it4innovations.github.io/hyperqueue/stable/).
+    """Support for the HyperQueue scheduler (https://it4innovations.github.io/hyperqueue/stable/).
     """
 
     _logger = Scheduler._logger.getChild("hyperqueue")
@@ -102,8 +99,7 @@ class HyperQueueScheduler(Scheduler):
     _job_resource_class = HyperQueueJobResource
 
     def _get_submit_script_header(self, job_tmpl: JobTemplate) -> str:
-        """
-        Return the submit script header, using the parameters from the
+        """Return the submit script header, using the parameters from the
         job_tmpl.
 
         Args:
@@ -149,8 +145,7 @@ class HyperQueueScheduler(Scheduler):
         return "\n".join(hq_options)
 
     def _get_submit_command(self, submit_script: str) -> str:
-        """
-        Return the string to execute to submit a given script.
+        """Return the string to execute to submit a given script.
 
         Args:
             submit_script: the path of the submit script relative to the working
@@ -163,8 +158,7 @@ class HyperQueueScheduler(Scheduler):
         return submit_command
 
     def _parse_submit_output(self, retval: int, stdout: str, stderr: str) -> str:
-        """
-        Parse the output of the submit command, as returned by executing the
+        """Parse the output of the submit command, as returned by executing the
         command returned by _get_submit_command command.
 
         Return a string with the JobID.
@@ -208,8 +202,7 @@ class HyperQueueScheduler(Scheduler):
     def _get_joblist_command(
         self, jobs: Optional[list] = None, user: Optional[str] = None
     ) -> str:
-        """
-        Return the ``hq`` command for listing the active jobs.
+        """Return the ``hq`` command for listing the active jobs.
 
         Note: since the ``hq job list`` command cannot filter on job ids (yet), the ``jobs`` input is currently ignored.
         These could in principle be passed to the ``hq job`` command, but this has an entirely different format.
@@ -218,8 +211,7 @@ class HyperQueueScheduler(Scheduler):
         return "hq job list --filter waiting,running"
 
     def _parse_joblist_output(self, retval: int, stdout: str, stderr: str) -> list:
-        """
-        Parse the stdout for the joblist command.
+        """Parse the stdout for the joblist command.
 
         :return: A ``List`` of ``JobInfo`` instances.
         """
@@ -255,8 +247,7 @@ class HyperQueueScheduler(Scheduler):
         return job_info_list
 
     def _get_kill_command(self, jobid):
-        """
-        Return the command to kill the job with specified jobid.
+        """Return the command to kill the job with specified jobid.
         """
         submit_command = f"hq job cancel {jobid}"
 
@@ -265,8 +256,7 @@ class HyperQueueScheduler(Scheduler):
         return submit_command
 
     def _parse_kill_output(self, retval, stdout, stderr):
-        """
-        Parse the output of the kill command.
+        """Parse the output of the kill command.
 
         :return: True if everything seems ok, False otherwise.
         """
@@ -288,3 +278,8 @@ class HyperQueueScheduler(Scheduler):
             return False
 
         return True
+
+    def _get_detailed_job_info_command(self, job_id: str) -> dict[str, t.Any]:
+        """hq command to get the detailed job info."""
+
+        # TODO: implement me to get walltime issue etc

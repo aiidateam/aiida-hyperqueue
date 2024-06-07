@@ -29,7 +29,7 @@ def cmd_start(computer, domain: str):
         # We attach the domain name to the hostname manually and passed to the start command.
 
         # start command
-        start_command_lst = ["hq", "server", "start"]
+        start_command_lst = ["nohup", "hq", "server", "start"]
 
         if domain is not None:
             retval, stdout, stderr = transport.exec_command_wait(
@@ -44,13 +44,11 @@ def cmd_start(computer, domain: str):
         start_command_lst.extend(["1>$HOME/.hq-stdout", "2>$HOME/.hq-stderr", "&",])
         start_command = " ".join(start_command_lst)
 
-        # FIXME: It requires to sleep a bit after the nohup
-        # see https://github.com/aiidateam/aiida-core/issues/6377
-        # but the sleep solution is incorrect!!! Since the sleep will always return 0.
-        # this not rely on https://github.com/aiidateam/aiida-core/pull/6452
         echo.echo_debug(f"Run start command {start_command} on the remote")
 
-        retval, _, stderr = transport.exec_command_wait(
+        # It requires to sleep a bit after the nohup see https://github.com/aiidateam/aiida-core/issues/6377
+        # This setup require aiida-core >= 2.5.2
+        retval, stdout, stderr = transport.exec_command_wait(
             start_command,
             timeout=0.1,
         )

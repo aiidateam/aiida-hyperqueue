@@ -75,7 +75,7 @@ def test_submit_command():
 def test_parse_submit_command_output(hq_env: HqEnv, valid_submit_script):
     """Test parsing the output of submit command"""
     hq_env.start_server()
-    hq_env.start_worker(cpus="2")
+    hq_env.start_worker(cpus="1")
     Path("_aiidasubmit.sh").write_text(valid_submit_script)
 
     process = hq_env.command(
@@ -145,7 +145,7 @@ def test_submit_script_mem_not_specified():
 def test_submit_script_is_hq_valid(hq_env: HqEnv, valid_submit_script):
     """The generated script can actually be run by hq"""
     hq_env.start_server()
-    hq_env.start_worker(cpus="2")
+    hq_env.start_worker(cpus="1")
     Path("_aiidasubmit.sh").write_text(valid_submit_script)
     hq_env.command(["submit", "_aiidasubmit.sh"])
     table = hq_env.command(["job", "info", "1"], as_table=True)

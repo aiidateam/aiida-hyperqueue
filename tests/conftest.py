@@ -37,7 +37,7 @@ def pytest_sessionstart(session):
         raise Exception(f"Installation failed with return code {result.returncode}")
 
 
-def get_hq_binary(debug):
+def get_hq_binary(debug=None):
     return BIN_DIR / "hq"
 
 
@@ -72,6 +72,7 @@ class Env:
                     cwd=cwd,
                     env=env,
                 )
+                print(args)
         else:
             p = subprocess.Popen(args, cwd=cwd, env=env)
         self.processes.append(
