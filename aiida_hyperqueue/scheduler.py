@@ -12,7 +12,7 @@ Plugin for the HyperQueue meta scheduler.
 """
 
 import re
-from typing import Union
+from typing import Union, Optional
 
 from aiida.common.extendeddicts import AttributeDict
 from aiida.common.exceptions import FeatureNotAvailable
@@ -33,6 +33,10 @@ class HyperQueueJobResource(JobResource):
     """Class for HyperQueue job resources."""
 
     _default_fields = ("num_cpus", "memory_mb")
+
+    _features = {
+        "can_query_by_user": False,
+    }
 
     def __init__(self, **kwargs):
         """
@@ -202,7 +206,7 @@ class HyperQueueScheduler(Scheduler):
         )
 
     def _get_joblist_command(
-        self, jobs: Union[str, list, tuple] = None, user: str = None
+        self, jobs: Optional[list] = None, user: Optional[str] = None
     ) -> str:
         """
         Return the ``hq`` command for listing the active jobs.
@@ -210,9 +214,6 @@ class HyperQueueScheduler(Scheduler):
         Note: since the ``hq job list`` command cannot filter on job ids (yet), the ``jobs`` input is currently ignored.
         These could in principle be passed to the ``hq job`` command, but this has an entirely different format.
         """
-
-        if user:
-            raise FeatureNotAvailable("Cannot query by user with HyperQueue")
 
         return "hq job list --filter waiting,running"
 
@@ -248,6 +249,7 @@ class HyperQueueScheduler(Scheduler):
                 job_info.job_id = job_dict["id"]
                 job_info.title = job_dict["name"]
                 job_info.job_state = _MAP_STATUS_HYPERQUEUE[job_dict["state"].upper()]
+                # TODO: In principle more detailed information can be parsed for each job by `hq job info`, such as cpu, wall_time etc.
                 job_info_list.append(job_info)
 
         return job_info_list
