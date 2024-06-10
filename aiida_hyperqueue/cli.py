@@ -91,13 +91,13 @@ def alloc_group():
     help=
     ('Set the backlog for the allocator. This is the number of allocations HyperQueue will make sure is waiting with'
      ' the job manager.'))
-@click.option('-w',
-              '--workers-per-alloc',
-              type=click.INT,
-              required=False,
-              default=1,
-              help=('Option to allow pooled jobs to launch on multiple nodes.')
-              )
+@click.option(
+    '-w',
+    '--workers-per-alloc',
+    type=click.INT,
+    required=False,
+    default=1,
+    help=('Option to allow pooled jobs to launch on multiple nodes.'))
 @decorators.with_dbenv()
 def add_cmd(slurm_options, computer, time_limit, enable_hyperthreading,
             backlog, workers_per_alloc):
