@@ -277,6 +277,10 @@ class HyperQueueScheduler(Scheduler):
         return True
 
     def _get_detailed_job_info_command(self, job_id: str) -> dict[str, t.Any]:
-        """hq command to get the detailed job info."""
+        """Return the command to run to get the detailed information on a job,
+        even after the job has finished.
 
-        # TODO: implement me to get walltime issue etc
+        The output text is just retrieved, and returned for logging purposes.
+        `jq` is used to transform the json into a one-line string.
+        """
+        return f"hq job info {job_id} --output-mode json | jq -c ."
