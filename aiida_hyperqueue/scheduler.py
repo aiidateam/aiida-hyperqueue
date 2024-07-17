@@ -180,7 +180,7 @@ class HyperQueueScheduler(Scheduler):
 
         hq_job_dict = json.loads(stdout)
         try:
-            return str(hq_job_dict['id'])
+            return str(hq_job_dict["id"])
         except KeyError:
             # If no valid line is found, log and raise an error
             self.logger.error(
@@ -221,18 +221,19 @@ class HyperQueueScheduler(Scheduler):
             )
 
         # convert hq returned job list to job info list
-        # HQ support 1 hq job with multiple tasks. 
+        # HQ support 1 hq job with multiple tasks.
         # Since the way aiida-hq using hq is 1-1 match between hq job and hq task, we only parse 1 task as aiida job.
-        hq_job_info_list = json.loads(stdout) 
+        hq_job_info_list = json.loads(stdout)
 
         job_info_list = []
         for hq_job_dict in hq_job_info_list:
-
             job_info = JobInfo()
             job_info.job_id = hq_job_dict["id"]
             job_info.title = hq_job_dict["name"]
-            stats: t.List[str] = [stat for stat, v in hq_job_dict["task_stats"].items() if v > 0]
-            if hq_job_dict['task_count'] != 1 or len(stats) != 1:
+            stats: t.List[str] = [
+                stat for stat, v in hq_job_dict["task_stats"].items() if v > 0
+            ]
+            if hq_job_dict["task_count"] != 1 or len(stats) != 1:
                 self.logger.error("not able to parse hq job with multiple tasks.")
             else:
                 job_info.job_state = _MAP_STATUS_HYPERQUEUE[stats[0].upper()]

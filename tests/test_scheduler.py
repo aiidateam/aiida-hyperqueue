@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for command line interface."""
+
 import pytest
 import uuid
 from pathlib import Path
@@ -78,7 +79,9 @@ def test_parse_submit_command_output(hq_env: HqEnv, valid_submit_script):
     Path("_aiidasubmit.sh").write_text(valid_submit_script)
 
     process = hq_env.command(
-        ["submit", "--output-mode=json", "_aiidasubmit.sh"], wait=False, ignore_stderr=True
+        ["submit", "--output-mode=json", "_aiidasubmit.sh"],
+        wait=False,
+        ignore_stderr=True,
     )
     stdout = process.communicate()[0].decode()
     stderr = ""
