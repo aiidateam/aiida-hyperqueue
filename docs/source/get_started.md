@@ -53,7 +53,7 @@ transport: core.ssh
 scheduler: hyperqueue  # Use the `hyperqueue` scheduler
 shebang: '#!/bin/bash'
 work_dir: /capstor/scratch/cscs/{username}/aiida/
-mpirun_command: srun -s -n {num_mpiprocs} --mem {memory_Mb}  # Make sure to use this srun command
+mpirun_command: srun -s -n {num_cpus} --mem {memory_mb}  # Make sure to use this srun command
 mpiprocs_per_machine: 128
 prepend_text: ' '
 append_text: ' '
@@ -123,6 +123,7 @@ verdi data hyperqueue alloc add -Y eiger-hq -t 30m -- -A mr0 -C mc -p debug
 :::
 
 Both the `-Y / --computer` option and `-t / --time-limit` options are required.
+Use the `--hyper-threading` or `--no-hyper-threading` options to enable or disable hyper-threading for the worker allocation.
 After the double hyphen `--`, you can place additional Slurm options to e.g. specify your project account (`-A`), constraints (`-C`) and the partition you want to run on (`-p`).
 Once one or more allocations have been configured, you can check the list of allocations with `verdi data hyperqueue alloc list`:
 
