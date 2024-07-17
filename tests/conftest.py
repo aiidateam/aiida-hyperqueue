@@ -295,7 +295,7 @@ class HqEnv(Env):
         env=None,
         use_server_dir=True,
         cmd_prefix: Optional[List[str]] = None,
-    ):
+        ):
         cmd_prefix = cmd_prefix if cmd_prefix is not None else []
         if isinstance(args, str):
             args = [args]
