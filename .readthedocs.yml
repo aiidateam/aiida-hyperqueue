@@ -17,7 +17,7 @@ build:
     - asdf install uv 0.2.9
     - asdf global uv 0.2.9
     post_install:
-    - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH uv pip install .[tests]
+    - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH uv pip install .[docs]
 
 # Let the build fail if there are any warnings
 sphinx:
