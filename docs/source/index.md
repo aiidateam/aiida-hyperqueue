@@ -33,7 +33,7 @@ Update the acknowledgements.
 If you use this plugin for your research, please cite the following work:
 
 ```{eval-rst}
-.. highlights:: Author Name1, Author Name2, *Paper title*, Jornal Name XXX, YYYY (Year).
+.. highlights:: Jakub Beránek, Ada Böhm, Gianluca Palermo, Jan Martinovič, and Branislav Jansík, *HyperQueue: Efficient and ergonomic task graphs on HPC clusters*, SoftwareX 27, 101814 (2024); https://doi.org/10.1016/j.softx.2024.101814; https://it4innovations.github.io/hyperqueue/stable/.
 ```
 
 If you use AiiDA for your research, please cite the following work:
