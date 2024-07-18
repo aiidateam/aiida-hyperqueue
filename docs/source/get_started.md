@@ -20,12 +20,14 @@ mkdir -p $HOME/bin
 
 :::
 
-Then download the latest version of HyperQueue, untar the binary and put it in the directory you just created:
+Then download the latest version (`v0.18.0`) of HyperQueue, untar the binary and put it in the directory you just created:
 
 :::{code-block} console
 
-wget -qO- https://github.com/It4innovations/hyperqueue/releases/download/v0.11.0/hq-v0.11.0-linux-x64.tar.gz | tar xvz -C $HOME/bin
+wget -qO- https://github.com/It4innovations/hyperqueue/releases/download/v0.18.0/hq-v0.18.0-linux-x64.tar.gz | tar xvz -C $HOME/bin
 :::
+
+For the older version of HyperQueue, you can change the version number in the URL.
 
 Next, if the directory isn't already part of your `PATH`, add the following line to your `.bashrc`:
 
@@ -47,10 +49,10 @@ Below you can find an example YAML file:
 label: eiger-hq
 description: Eiger CSCS cluster
 hostname: eiger.cscs.ch
-transport: ssh
+transport: core.ssh
 scheduler: hyperqueue  # Use the `hyperqueue` scheduler
 shebang: '#!/bin/bash'
-work_dir: /scratch/e1000/{username}/aiida
+work_dir: /capstor/scratch/cscs/{username}/aiida/
 mpirun_command: srun -s -n {num_cpus} --mem {memory_mb}  # Make sure to use this srun command
 mpiprocs_per_machine: 128
 prepend_text: ' '
