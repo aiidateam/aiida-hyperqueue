@@ -28,19 +28,3 @@ jobs:
       run: |
         chmod og-rw ~
         pytest --cov aiida_hyperqueue --cov-append .
-
-  docs:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
-    - name: Install python dependencies
-      run: |
-        pip install --upgrade pip
-        pip install .[docs]
-    - name: Build docs
-      run: cd docs && make
