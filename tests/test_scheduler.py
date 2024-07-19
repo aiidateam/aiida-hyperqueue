@@ -69,7 +69,9 @@ def test_submit_command():
     """Test submit command"""
     scheduler = HyperQueueScheduler()
 
-    assert "hq submit --output-mode=json job.sh" == scheduler._get_submit_command("job.sh")
+    assert "hq submit --output-mode=json job.sh" == scheduler._get_submit_command(
+        "job.sh"
+    )
 
 
 def test_parse_submit_command_output(hq_env: HqEnv, valid_submit_script):
@@ -80,7 +82,7 @@ def test_parse_submit_command_output(hq_env: HqEnv, valid_submit_script):
 
     scheduler = HyperQueueScheduler()
     args = scheduler._get_submit_command("_aiidasubmit.sh")
-    args = args.split(' ')[1:]
+    args = args.split(" ")[1:]
     process = hq_env.command(
         args,
         wait=False,
