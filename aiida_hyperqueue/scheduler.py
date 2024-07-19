@@ -148,7 +148,7 @@ class HyperQueueScheduler(Scheduler):
             submit_script: the path of the submit script relative to the working
                 directory.
         """
-        submit_command = f"hq submit {submit_script} --output-mode=json"
+        submit_command = f"hq submit --output-mode=json {submit_script}"
 
         self.logger.info(f"Submitting with: {submit_command}")
 
@@ -178,10 +178,10 @@ class HyperQueueScheduler(Scheduler):
                 f"in _parse_submit_output{transport_string}: there was some text in stderr: {stderr}"
             )
 
-        hq_job_dict = json.loads(stdout)
         try:
+            hq_job_dict = json.loads(stdout)
             return str(hq_job_dict["id"])
-        except KeyError:
+        except Exception:
             # If no valid line is found, log and raise an error
             self.logger.error(
                 f"in _parse_submit_output{transport_string}: unable to find the job id: {stdout}"
