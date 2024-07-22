@@ -228,7 +228,9 @@ class HyperQueueScheduler(Scheduler):
         job_info_list = []
         for hq_job_dict in hq_job_info_list:
             job_info = JobInfo()
-            job_info.job_id = hq_job_dict["id"]
+            job_info.job_id = str(
+                hq_job_dict["id"]
+            )  # must be str, if it is a int job will not waiting
             job_info.title = hq_job_dict["name"]
             stats: t.List[str] = [
                 stat for stat, v in hq_job_dict["task_stats"].items() if v > 0
