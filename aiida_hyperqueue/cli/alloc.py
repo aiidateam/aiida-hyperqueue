@@ -60,7 +60,7 @@ def cmd_add(
 
     with computer.get_transport() as transport:
         retval, _, stderr = transport.exec_command_wait(
-            f'hq alloc add slurm --backlog {backlog} --time-limit {time_limit} --name aiida {hyper} '
+            f'hq alloc add slurm --backlog {backlog} --time-limit {time_limit} --name ahq {hyper} '
             f'--workers-per-alloc {workers_per_alloc} -- {" ".join(slurm_options)}'
         )
 
