@@ -2,7 +2,7 @@
 # pre-commit install
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.1.0
+      rev: v4.6.0
       hooks:
         - id: end-of-file-fixer
         - id: fix-encoding-pragma
@@ -11,7 +11,7 @@ repos:
         - id: check-json
 
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.4.1
+      rev: v0.5.5
       hooks:
       - id: ruff-format
       - id: ruff
