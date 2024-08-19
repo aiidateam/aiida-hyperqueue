@@ -57,7 +57,10 @@ class HyperQueueJobResource(JobResource):
         try:
             resources.num_cpus = kwargs.pop("num_cpus")
         except KeyError:
-            raise KeyError("Must specify `num_cpus`")
+            try:
+                resources.num_cpus = kwargs.pop("num_machines") * kwargs.pop("num_mpiprocs_per_machine")
+            except KeyError:
+                raise KeyError(f"Must specify `num_cpus`, or (`num_machines` and `num_mpiprocs_per_machine`) {kwargs}")
         else:
             if not isinstance(resources.num_cpus, int):
                 raise ValueError("`num_cpus` must be an integer")
