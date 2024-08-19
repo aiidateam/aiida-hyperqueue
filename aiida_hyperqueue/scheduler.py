@@ -29,7 +29,7 @@ _MAP_STATUS_HYPERQUEUE = {
 class HyperQueueJobResource(JobResource):
     """Class for HyperQueue job resources."""
 
-    _default_fields = ("num_cpus", "memory_mb")
+    _default_fields = ("num_cpus", "memory_mb", "num_machines", "num_mpiprocs_per_machine")
 
     _features = {
         "can_query_by_user": False,
@@ -58,9 +58,13 @@ class HyperQueueJobResource(JobResource):
             resources.num_cpus = kwargs.pop("num_cpus")
         except KeyError:
             try:
-                resources.num_cpus = kwargs.pop("num_machines") * kwargs.pop("num_mpiprocs_per_machine")
+                resources.num_cpus = kwargs.pop("num_machines") * kwargs.pop(
+                    "num_mpiprocs_per_machine"
+                )
             except KeyError:
-                raise KeyError(f"Must specify `num_cpus`, or (`num_machines` and `num_mpiprocs_per_machine`) {kwargs}")
+                raise KeyError(
+                    f"Must specify `num_cpus`, or (`num_machines` and `num_mpiprocs_per_machine`) {kwargs}"
+                )
         else:
             if not isinstance(resources.num_cpus, int):
                 raise ValueError("`num_cpus` must be an integer")
