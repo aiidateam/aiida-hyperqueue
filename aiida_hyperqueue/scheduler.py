@@ -26,9 +26,9 @@ _MAP_STATUS_HYPERQUEUE = {
     "FINISHED": JobState.DONE,
 }
 
+
 class AiiDAHypereQueueDeprecationWarning(Warning):
-    """Class for HypereQueue plugin deprecations.
-    """
+    """Class for HypereQueue plugin deprecations."""
 
 
 class HyperQueueJobResource(JobResource):
@@ -65,9 +65,9 @@ class HyperQueueJobResource(JobResource):
             try:
                 # For backward compatibility where `num_machines` and `num_mpiprocs_per_machine` are setting
                 # TODO: I only setting the default value as 1 for `num_mpiprocs_per_machine` because aiida-quantumespresso override
-                # resources default with `num_machines` set to 1 and then get builder with such setting. 
+                # resources default with `num_machines` set to 1 and then get builder with such setting.
                 # The `num_mpiprocs_per_machine` sometime can be read from "Default #procs/machine" of computer setup but if it is not exist
-                # the builder can not be properly get without passing `option` to builder generator. 
+                # the builder can not be properly get without passing `option` to builder generator.
                 # It is anyway a workaround for backward compatibility so this default is implemented despite it is quite specific for the qe plugin.
                 resources.num_cpus = kwargs.pop("num_machines") * kwargs.pop(
                     "num_mpiprocs_per_machine", 1
@@ -77,10 +77,10 @@ class HyperQueueJobResource(JobResource):
                     "Must specify `num_cpus`, or (`num_machines` and `num_mpiprocs_per_machine`)"
                 )
             else:
-                message = 'The `num_machines` and `num_mpiprocs_per_machine` for setting hyperqueue resources are deprecated. '
-                'Please set `num_cpus` and `memory_mb`.'
+                message = "The `num_machines` and `num_mpiprocs_per_machine` for setting hyperqueue resources are deprecated. "
+                "Please set `num_cpus` and `memory_mb`."
 
-                message = f'{message} (this will be removed in aiida-hyperqueue v1.0)'
+                message = f"{message} (this will be removed in aiida-hyperqueue v1.0)"
                 warnings.warn(message, AiiDAHypereQueueDeprecationWarning, stacklevel=3)
         else:
             if not isinstance(resources.num_cpus, int):
