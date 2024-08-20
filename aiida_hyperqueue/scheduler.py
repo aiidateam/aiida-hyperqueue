@@ -64,7 +64,12 @@ class HyperQueueJobResource(JobResource):
         except KeyError:
             try:
                 # For backward compatibility where `num_machines` and `num_mpiprocs_per_machine` are setting
-                resources.num_cpus = kwargs.pop("num_machines", 1) * kwargs.pop(
+                # TODO: I only setting the default value as 1 for `num_mpiprocs_per_machine` because aiida-quantumespresso override
+                # resources default with `num_machines` set to 1 and then get builder with such setting. 
+                # The `num_mpiprocs_per_machine` sometime can be read from "Default #procs/machine" of computer setup but if it is not exist
+                # the builder can not be properly get without passing `option` to builder generator. 
+                # It is anyway a workaround for backward compatibility so this default is implemented despite it is quite specific for the qe plugin.
+                resources.num_cpus = kwargs.pop("num_machines") * kwargs.pop(
                     "num_mpiprocs_per_machine", 1
                 )
             except KeyError:
