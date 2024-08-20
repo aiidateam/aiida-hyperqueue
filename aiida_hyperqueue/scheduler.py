@@ -11,6 +11,7 @@
 
 import json
 import typing as t
+import warnings
 
 from aiida.common.extendeddicts import AttributeDict
 from aiida.schedulers import Scheduler, SchedulerError
@@ -25,11 +26,15 @@ _MAP_STATUS_HYPERQUEUE = {
     "FINISHED": JobState.DONE,
 }
 
+class AiiDAHypereQueueDeprecationWarning(Warning):
+    """Class for HypereQueue plugin deprecations.
+    """
+
 
 class HyperQueueJobResource(JobResource):
     """Class for HyperQueue job resources."""
 
-    _default_fields = ("num_cpus", "memory_mb", "num_machines", "num_mpiprocs_per_machine")
+    _default_fields = ("num_cpus", "memory_mb")
 
     _features = {
         "can_query_by_user": False,
@@ -58,13 +63,20 @@ class HyperQueueJobResource(JobResource):
             resources.num_cpus = kwargs.pop("num_cpus")
         except KeyError:
             try:
-                resources.num_cpus = kwargs.pop("num_machines") * kwargs.pop(
-                    "num_mpiprocs_per_machine"
+                # For backward compatibility where `num_machines` and `num_mpiprocs_per_machine` are setting
+                resources.num_cpus = kwargs.pop("num_machines", 1) * kwargs.pop(
+                    "num_mpiprocs_per_machine", 1
                 )
             except KeyError:
                 raise KeyError(
-                    f"Must specify `num_cpus`, or (`num_machines` and `num_mpiprocs_per_machine`) {kwargs}"
+                    "Must specify `num_cpus`, or (`num_machines` and `num_mpiprocs_per_machine`)"
                 )
+            else:
+                message = 'The `num_machines` and `num_mpiprocs_per_machine` for setting hyperqueue resources are deprecated. '
+                'Please set `num_cpus` and `memory_mb`.'
+
+                message = f'{message} (this will be removed in aiida-hyperqueue v1.0)'
+                warnings.warn(message, AiiDAHypereQueueDeprecationWarning, stacklevel=3)
         else:
             if not isinstance(resources.num_cpus, int):
                 raise ValueError("`num_cpus` must be an integer")
