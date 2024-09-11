@@ -79,7 +79,7 @@ To start the server, simply run:
 
 :::{code-block} console
 
-verdi data hyperqueue server start eiger-hq
+aiida-hq server start eiger-hq
 
 :::
 
@@ -87,22 +87,17 @@ You can get more information on the server using:
 
 :::{code-block} console
 
-$ verdi data hyperqueue server info eiger-hq
-+------------------+--------------------------+
-| Server directory | /users/mbercx/.hq-server |
-+------------------+--------------------------+
-| Host             | uan02                    |
-+------------------+--------------------------+
-| Pid              | 101525                   |
-+------------------+--------------------------+
-| HQ port          | 39211                    |
-+------------------+--------------------------+
-| Workers port     | 45549                    |
-+------------------+--------------------------+
-| Start date       | 2021-12-15 01:22:10 UTC  |
-+------------------+--------------------------+
-| Version          | 0.6.1                    |
-+------------------+--------------------------+
+$ aiida-hq server info eiger-hq
++-------------+-------------------------+
+| Server UID  | 5yWtgC                  |
+| Client host | eiger-ln002             |
+| Client port | 32989                   |
+| Worker host | eiger-ln002             |
+| Worker port | 43041                   |
+| Version     | v0.18.0                 |
+| Pid         | 181310                  |
+| Start date  | 2024-09-02 17:51:12 UTC |
++-------------+-------------------------+
 
 :::
 
@@ -118,18 +113,18 @@ For example:
 
 :::{code-block} console
 
-verdi data hyperqueue alloc add -Y eiger-hq -t 30m -- -A mr0 -C mc -p debug
+aiida-hq alloc add -Y eiger-hq -t 30m -- -A mr0 -C mc -p debug
 
 :::
 
 Both the `-Y / --computer` option and `-t / --time-limit` options are required.
 Use the `--hyper-threading` or `--no-hyper-threading` options to enable or disable hyper-threading for the worker allocation.
 After the double hyphen `--`, you can place additional Slurm options to e.g. specify your project account (`-A`), constraints (`-C`) and the partition you want to run on (`-p`).
-Once one or more allocations have been configured, you can check the list of allocations with `verdi data hyperqueue alloc list`:
+Once one or more allocations have been configured, you can check the list of allocations with `aiida-hq alloc list`:
 
 :::{code-block} console
 
-$ verdi data hyperqueue alloc list eiger-hq
+$ aiida-hq alloc list eiger-hq
 +----+--------------+-------------------+-----------+---------+-------+-----------------------+
 | ID | Backlog size | Workers per alloc | Timelimit | Manager | Name  | Args                  |
 +----+--------------+-------------------+-----------+---------+-------+-----------------------+
@@ -138,11 +133,11 @@ $ verdi data hyperqueue alloc list eiger-hq
 
 :::
 
-Finally, allocations can be removed with verdi data hyperqueue alloc remove:
+Finally, allocations can be removed with `aiida-hq alloc remove`:
 
 :::{code-block} console
 
-verdi data hyperqueue alloc remove -Y eiger-hq 1
+aiida-hq alloc remove -Y eiger-hq 1
 
 :::
 
