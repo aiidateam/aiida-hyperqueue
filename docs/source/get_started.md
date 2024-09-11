@@ -133,7 +133,7 @@ $ aiida-hq alloc list eiger-hq
 
 :::
 
-Finally, allocations can be removed with aiida-hq alloc remove:
+Finally, allocations can be removed with `aiida-hq alloc remove`:
 
 :::{code-block} console
 
