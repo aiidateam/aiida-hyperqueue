@@ -14,7 +14,7 @@ import typing as t
 import warnings
 
 from aiida.common.extendeddicts import AttributeDict
-from aiida.schedulers import Scheduler, SchedulerError
+from aiida.schedulers import Scheduler, SchedulerError, BashCliScheduler
 from aiida.schedulers.datastructures import JobInfo, JobState, JobResource, JobTemplate
 
 # Mapping of HyperQueue states to AiiDA `JobState`s
@@ -106,7 +106,7 @@ class HyperQueueJobResource(JobResource):
         return self.num_cpus
 
 
-class HyperQueueScheduler(Scheduler):
+class HyperQueueScheduler(BashCliScheduler):
     """Support for the HyperQueue scheduler (https://it4innovations.github.io/hyperqueue/stable/)."""
 
     _logger = Scheduler._logger.getChild("hyperqueue")
