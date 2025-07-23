@@ -1,3 +1,8 @@
+## v0.2.1
+- [#43](https://github.com/aiidateam/aiida-hyperqueue/pull/43)
+
+    - Upgrade aiida-core dependency to 2.7, and adopting to it's minor breaking change
+
 ## v0.2.0
 
 - [#18](https://github.com/aiidateam/aiida-hyperqueue/pull/18) A large refactoring with following changes:
