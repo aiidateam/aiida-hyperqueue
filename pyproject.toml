@@ -24,7 +24,7 @@ classifiers = [
 requires-python = ">=3.9"
 
 dependencies = [
-    "aiida-core~=2.0",
+    "aiida-core>=2.7",
 ]
 
 [project.urls]
