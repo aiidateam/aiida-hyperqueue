@@ -1,4 +1,12 @@
+## v0.3.0
+
+### ⬆️ Update dependencies
+
+* Provide support for `aiida-core~=2.7` via `BashCliScheduler` [[42b8f14](https://github.com/aiidateam/aiida-hyperqueue/commit/42b8f14412121daddc0a2e9eea1360ad949d4e65)]
+
 ## v0.2.1
+
+### 🔧 Maintenance
 
 * Add `update_changelog.py` script [[9b03acb](https://github.com/aiidateam/aiida-hyperqueue/commit/9b03acbf9cb804ef7f3c35c6d5b7495b917dacc6)]
 * Add upper limit to `aiida-core` [[fd7a62f](https://github.com/aiidateam/aiida-hyperqueue/commit/fd7a62feae23f99899a025cfe411531576bf93fd)]
