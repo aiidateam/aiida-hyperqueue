@@ -45,5 +45,8 @@ jobs:
         -   name: Install flit
             run: pip install flit~=3.8
 
-        -   name: Build and publish
-            run: flit publish
+        -   name: Build with flit
+            run: flit build
+
+        -   name: Publish to PyPI using Trusted Publishing
+            uses: pypa/gh-action-pypi-publish@release/v1
