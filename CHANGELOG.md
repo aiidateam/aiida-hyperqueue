@@ -1,3 +1,8 @@
+## v0.2.1
+
+* Add `update_changelog.py` script [[9b03acb](https://github.com/aiidateam/aiida-hyperqueue/commit/9b03acbf9cb804ef7f3c35c6d5b7495b917dacc6)]
+* Add upper limit to `aiida-core` [[fd7a62f](https://github.com/aiidateam/aiida-hyperqueue/commit/fd7a62feae23f99899a025cfe411531576bf93fd)]
+
 ## v0.2.0
 
 - [#18](https://github.com/aiidateam/aiida-hyperqueue/pull/18) A large refactoring with following changes:
@@ -10,7 +15,6 @@
 
 - [#26](https://github.com/aiidateam/aiida-hyperqueue/pull/26) Change alloc add worker name (name appear in slurm queue) `aiida` -> `ahq`
 - [#24](https://github.com/aiidateam/aiida-hyperqueue/pull/24) Use JSON format as output for hq job list and hq submit
-
 
 ## v0.1.1
 
