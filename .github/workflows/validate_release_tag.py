@@ -34,9 +34,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("GITHUB_REF", help="The GITHUB_REF environmental variable")
     args = parser.parse_args()
-    assert args.GITHUB_REF.startswith(
-        "refs/tags/v"
-    ), f'GITHUB_REF should start with "refs/tags/v": {args.GITHUB_REF}'
+    assert args.GITHUB_REF.startswith("refs/tags/v"), (
+        f'GITHUB_REF should start with "refs/tags/v": {args.GITHUB_REF}'
+    )
     tag_version = args.GITHUB_REF[11:]
     package_version = get_version_from_module(
         Path("aiida_hyperqueue/__init__.py").read_text(encoding="utf-8")
