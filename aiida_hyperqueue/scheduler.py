@@ -62,25 +62,24 @@ class HyperQueueJobResource(JobResource):
         try:
             resources.num_cpus = kwargs.pop("num_cpus")
         except KeyError:
+            # For backward compatibility where `num_machines` and `num_mpiprocs_per_machine`
+            # are set. `num_mpiprocs_per_machine` is normally injected by aiida-core's
+            # `Scheduler.preprocess_resources` from the computer's
+            # `default_mpiprocs_per_machine`, which is `None` when the computer defines no
+            # default — hence the `or`-fallback to 1 rather than a `pop` default.
+            num_mpiprocs_per_machine = kwargs.pop("num_mpiprocs_per_machine", None) or 1
             try:
-                # For backward compatibility where `num_machines` and `num_mpiprocs_per_machine` are setting
-                # TODO: I only setting the default value as 1 for `num_mpiprocs_per_machine` because aiida-quantumespresso override
-                # resources default with `num_machines` set to 1 and then get builder with such setting.
-                # The `num_mpiprocs_per_machine` sometime can be read from "Default #procs/machine" of computer setup but if it is not exist
-                # the builder can not be properly get without passing `option` to builder generator.
-                # It is anyway a workaround for backward compatibility so this default is implemented despite it is quite specific for the qe plugin.
-                resources.num_cpus = kwargs.pop("num_machines") * kwargs.pop(
-                    "num_mpiprocs_per_machine", 1
-                )
+                resources.num_cpus = kwargs.pop("num_machines") * num_mpiprocs_per_machine
             except KeyError:
                 raise KeyError(
                     "Must specify `num_cpus`, or (`num_machines` and `num_mpiprocs_per_machine`)"
                 )
             else:
-                message = "The `num_machines` and `num_mpiprocs_per_machine` for setting hyperqueue resources are deprecated. "
-                "Please set `num_cpus` and `memory_mb`."
-
-                message = f"{message} (this will be removed in aiida-hyperqueue v1.0)"
+                message = (
+                    "The `num_machines` and `num_mpiprocs_per_machine` for setting hyperqueue "
+                    "resources are deprecated. Please set `num_cpus` and `memory_mb`. "
+                    "(this will be removed in aiida-hyperqueue v1.0)"
+                )
                 warnings.warn(message, AiiDAHypereQueueDeprecationWarning, stacklevel=3)
         else:
             if not isinstance(resources.num_cpus, int):
@@ -98,8 +97,13 @@ class HyperQueueJobResource(JobResource):
 
     @classmethod
     def accepts_default_mpiprocs_per_machine(cls):
-        """Return True if this subclass accepts a `default_mpiprocs_per_machine` key, False otherwise."""
-        return False
+        """Return True if this subclass accepts a `default_mpiprocs_per_machine` key, False otherwise.
+
+        Accepting it lets the backward-compatibility `num_machines` path pick up the
+        computer's ``default_mpiprocs_per_machine`` instead of silently running on a
+        single CPU.
+        """
+        return True
 
     def get_tot_num_mpiprocs(self):
         """Return the total number of cpus of this job resource."""
