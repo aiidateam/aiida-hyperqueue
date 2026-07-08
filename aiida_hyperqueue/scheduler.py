@@ -69,7 +69,9 @@ class HyperQueueJobResource(JobResource):
             # default — hence the `or`-fallback to 1 rather than a `pop` default.
             num_mpiprocs_per_machine = kwargs.pop("num_mpiprocs_per_machine", None) or 1
             try:
-                resources.num_cpus = kwargs.pop("num_machines") * num_mpiprocs_per_machine
+                resources.num_cpus = (
+                    kwargs.pop("num_machines") * num_mpiprocs_per_machine
+                )
             except KeyError:
                 raise KeyError(
                     "Must specify `num_cpus`, or (`num_machines` and `num_mpiprocs_per_machine`)"
