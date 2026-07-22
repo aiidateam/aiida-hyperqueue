@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """Tests for command line interface."""
 
-import pytest
 import uuid
 from pathlib import Path
 
-from aiida.schedulers import JobState
-from aiida.common.datastructures import CodeRunMode
-from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
+import pytest
 from aiida_hyperqueue.scheduler import HyperQueueJobResource, HyperQueueScheduler
+
+from aiida.common.datastructures import CodeRunMode
+from aiida.schedulers import JobState
+from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
 
 from .conftest import HqEnv
 from .utils import wait_for_job_state

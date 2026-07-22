@@ -14,9 +14,9 @@
 import time
 
 import aiida_hyperqueue
+
 from aiida import load_profile
 from aiida.storage.sqlite_temp import SqliteTempBackend
-
 
 # -- AiiDA-related setup --------------------------------------------------
 temp_profile = SqliteTempBackend.create_profile("temp-profile")
