@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """Script for automatically updating the `CHANGELOG.md` based on the commits since the latest release tag."""
 
-from pathlib import Path
 import re
 import subprocess
+from pathlib import Path
 
 DEFAULT_CHANGELOG_SECTIONS = """
 ### ‼️ Breaking changes

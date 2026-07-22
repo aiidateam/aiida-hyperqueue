@@ -6,8 +6,8 @@ import signal
 import subprocess
 import time
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Tuple
 from pathlib import Path
+from typing import Iterable, List, Optional, Tuple
 
 import pytest
 
@@ -32,7 +32,7 @@ def pytest_sessionstart(session):
     hq_version = os.environ.get("HQ_VERSION", "v0.19.0")
     install_command = f"wget -qO- https://github.com/It4innovations/hyperqueue/releases/download/{hq_version}/hq-{hq_version}-linux-x64.tar.gz | tar xvz -C {BIN_DIR.resolve()}"
     print(install_command)
-    result = subprocess.run(install_command, shell=True)
+    result = subprocess.run(install_command, shell=True, check=False)
     if result.returncode != 0:
         raise Exception(f"Installation failed with return code {result.returncode}")
 
@@ -132,8 +132,7 @@ class Env:
             if p.process.returncode is None and not p.process.poll():
                 os.killpg(os.getpgid(p.process.pid), signal)
             return p.process
-        else:
-            raise Exception("Process not found")
+        raise Exception("Process not found")
 
     def sort_processes_for_kill(self):
         pass

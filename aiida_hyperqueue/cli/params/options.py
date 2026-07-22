@@ -4,6 +4,7 @@
 import functools
 
 import click
+
 from aiida.cmdline.params import options as core_options
 from aiida.cmdline.params import types as core_types
 

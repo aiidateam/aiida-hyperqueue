@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import click
 
-from aiida.cmdline.params import options, arguments
+from aiida.cmdline.params import arguments, options
 from aiida.cmdline.utils import echo
 
 from .root import cmd_root

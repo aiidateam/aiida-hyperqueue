@@ -3,8 +3,8 @@ import click
 
 from aiida.cmdline.utils import echo
 
-from .root import cmd_root
 from .params import arguments
+from .root import cmd_root
 
 
 @cmd_root.group("server")
