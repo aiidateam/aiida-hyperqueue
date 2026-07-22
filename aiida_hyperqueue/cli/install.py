@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import tarfile
 import tempfile
 from pathlib import Path

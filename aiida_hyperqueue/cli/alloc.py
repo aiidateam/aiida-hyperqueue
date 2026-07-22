@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import click
 
 from aiida.cmdline.params import arguments, options

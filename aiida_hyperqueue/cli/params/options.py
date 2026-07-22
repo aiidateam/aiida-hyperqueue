@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Reusable options for CLI commands."""
 
 import functools

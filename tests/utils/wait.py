@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 import time
-from typing import List, Union
 
 import psutil
 
@@ -24,21 +22,21 @@ def wait_until(fn, sleep_s=0.2, timeout_s=DEFAULT_TIMEOUT):
 
 def wait_for_state(
     env,
-    ids: Union[int, List[int]],
-    target_states: Union[str, List[str]],
-    commands: List[str],
+    ids: int | list[int],
+    target_states: str | list[str],
+    commands: list[str],
     state_index: int,
     **kwargs,
 ):
     if isinstance(ids, int):
         ids = {str(ids)}
     else:
-        ids = set(str(id) for id in ids)
+        ids = {str(id) for id in ids}
 
     if isinstance(target_states, str):
         target_states = {target_states.lower()}
     else:
-        target_states = set(state.lower() for state in target_states)
+        target_states = {state.lower() for state in target_states}
 
     last_table = None
 
@@ -61,13 +59,13 @@ def wait_for_state(
 
 
 def wait_for_job_state(
-    env, ids: Union[int, List[int]], target_states: Union[str, List[str]], **kwargs
+    env, ids: int | list[int], target_states: str | list[str], **kwargs
 ):
     wait_for_state(env, ids, target_states, ["job", "list", "--all"], 2, **kwargs)
 
 
 def wait_for_worker_state(
-    env, ids: Union[int, List[int]], target_states: Union[str, List[str]], **kwargs
+    env, ids: int | list[int], target_states: str | list[str], **kwargs
 ):
     wait_for_state(env, ids, target_states, ["worker", "list", "--all"], 1, **kwargs)
 

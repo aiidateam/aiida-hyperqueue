@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import contextlib
 import json
 import os
@@ -7,7 +6,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple
+from collections.abc import Iterable
 
 import pytest
 
@@ -120,7 +119,7 @@ class Env:
                     if p.final_check:
                         raise e
 
-    def get_processes_by_name(self, name: str) -> Iterable[Tuple[int, ManagedProcess]]:
+    def get_processes_by_name(self, name: str) -> Iterable[tuple[int, ManagedProcess]]:
         for i, p in enumerate(self.processes):
             if p.name == name:
                 yield i, p
@@ -191,7 +190,7 @@ class HqEnv(Env):
         self.check_running_processes()
         return process
 
-    def start_workers(self, count, **kwargs) -> List[subprocess.Popen]:
+    def start_workers(self, count, **kwargs) -> list[subprocess.Popen]:
         workers = []
         for _ in range(count):
             workers.append(self.start_worker(**kwargs))
@@ -207,7 +206,7 @@ class HqEnv(Env):
         wait_for_start=True,
         on_server_lost="stop",
         server_dir=None,
-        work_dir: Optional[str] = None,
+        work_dir: str | None = None,
         final_check: bool = False,
         hostname=None,
     ) -> subprocess.Popen:
@@ -273,7 +272,7 @@ class HqEnv(Env):
         if wait:
             wait_until(lambda: process.poll() is not None)
 
-    def find_process_by_pid(self, pid: int) -> Optional[ManagedProcess]:
+    def find_process_by_pid(self, pid: int) -> ManagedProcess | None:
         for p in self.processes:
             if p.process.pid == pid:
                 return p
@@ -293,7 +292,7 @@ class HqEnv(Env):
         ignore_stderr=False,
         env=None,
         use_server_dir=True,
-        cmd_prefix: Optional[List[str]] = None,
+        cmd_prefix: list[str] | None = None,
     ):
         cmd_prefix = cmd_prefix if cmd_prefix is not None else []
         if isinstance(args, str):
