@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-from typing import Dict, List, Optional
-
 JOB_TABLE_ROWS = 16
 
 
 class Table:
-    def __init__(self, rows: List[List[str]], header: Optional[List[str]]):
+    def __init__(self, rows: list[list[str]], header: list[str] | None):
         self.rows = rows
         self.header = header
 
@@ -23,7 +20,7 @@ class Table:
         assert self.rows
         return Table(self.rows[1:], self.rows[0])
 
-    def get_row_value(self, key) -> Optional[str]:
+    def get_row_value(self, key) -> str | None:
         """
         Assumes vertical table (each value has a separate row).
         """
@@ -39,7 +36,7 @@ class Table:
             raise Exception(f"Key `{key!r}` not found in\n{self}")
         assert row == value
 
-    def get_column_value(self, key: str) -> Optional[List[str]]:
+    def get_column_value(self, key: str) -> list[str] | None:
         """
         Assumes horizontal table (each value has a separate column).
         """
@@ -58,7 +55,7 @@ class Table:
         row = column[index]
         assert row == value
 
-    def check_columns_value(self, keys: List[str], index: int, values: List[str]):
+    def check_columns_value(self, keys: list[str], index: int, values: list[str]):
         assert len(keys) == len(values)
         for key, val in zip(keys, values):
             self.check_column_value(key, index, val)
@@ -146,6 +143,6 @@ def parse_tables(table_string: str):
         return tables
 
 
-def parse_multiline_cell(cell: str) -> Dict[str, str]:
+def parse_multiline_cell(cell: str) -> dict[str, str]:
     lines = cell.splitlines(keepends=False)
     return dict(line.split(": ") for line in lines)

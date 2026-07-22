@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 import contextlib
 import os
 import sys
 from pathlib import Path
-from typing import Dict
 
 
 class ProgramMock:
@@ -11,7 +9,7 @@ class ProgramMock:
         self.directory = Path(os.path.abspath(directory))
         os.makedirs(self.directory, exist_ok=True)
 
-    def update_env(self, env: Dict[str, str]):
+    def update_env(self, env: dict[str, str]):
         path = str(self.directory)
         if "PATH" in env:
             path += f":{env['PATH']}"

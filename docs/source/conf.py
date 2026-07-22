@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Sphinx configuration for aiida-hyperqueue
 #
@@ -69,7 +68,7 @@ current_year = str(time.localtime().tm_year)
 copyright_year_string = (
     current_year
     if current_year == copyright_first_year
-    else "{}-{}".format(copyright_first_year, current_year)
+    else f"{copyright_first_year}-{current_year}"
 )
 # pylint: disable=redefined-builtin
 copyright = "{}, {}. All rights reserved".format(

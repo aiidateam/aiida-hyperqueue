@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pytest
 from aiida_hyperqueue.cli import cmd_install
 from click.testing import CliRunner

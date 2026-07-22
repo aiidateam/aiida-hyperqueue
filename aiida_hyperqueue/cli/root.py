@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Command line interface `aiida-hq` for aiida-hyperqueue.
 The CLI implementation prototype from `aiida-pseudo`.
 """
