@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Sphinx configuration for aiida-hyperqueue
 #
@@ -14,9 +13,9 @@
 import time
 
 import aiida_hyperqueue
+
 from aiida import load_profile
 from aiida.storage.sqlite_temp import SqliteTempBackend
-
 
 # -- AiiDA-related setup --------------------------------------------------
 temp_profile = SqliteTempBackend.create_profile("temp-profile")
@@ -69,7 +68,7 @@ current_year = str(time.localtime().tm_year)
 copyright_year_string = (
     current_year
     if current_year == copyright_first_year
-    else "{}-{}".format(copyright_first_year, current_year)
+    else f"{copyright_first_year}-{current_year}"
 )
 # pylint: disable=redefined-builtin
 copyright = "{}, {}. All rights reserved".format(

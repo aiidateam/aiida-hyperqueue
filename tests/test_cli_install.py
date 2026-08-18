@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 import pytest
-from click.testing import CliRunner
-
 from aiida_hyperqueue.cli import cmd_install
+from click.testing import CliRunner
 
 
 @pytest.fixture
@@ -18,7 +16,7 @@ def test_install(runner, tmp_path, aiida_computer_local):
         cmd_install,
         [
             "-p",
-            f"{str(tmp_path.resolve())}",
+            f"{tmp_path.resolve()!s}",
             "--hq-version",
             version,
             "--no-write-bashrc",

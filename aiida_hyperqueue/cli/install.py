@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-import click
-import tempfile
-import requests
 import tarfile
+import tempfile
 from pathlib import Path
+
+import click
+import requests
 
 from aiida import orm
 from aiida.cmdline.utils import echo
@@ -81,7 +81,7 @@ def cmd_install(
         with computer.get_transport() as transport:
             # Get the abs path of remote bin dir
             retval, stdout, stderr = transport.exec_command_wait(
-                f"echo {str(remote_bin_dir)}"
+                f"echo {remote_bin_dir!s}"
             )
             if retval != 0:
                 echo.echo_critical(
@@ -102,7 +102,7 @@ def cmd_install(
             )
 
             # XXX: should transport.put take care of this already??
-            transport.exec_command_wait(f"chmod +x {str(remote_bin_dir / 'hq')}")
+            transport.exec_command_wait(f"chmod +x {remote_bin_dir / 'hq'!s}")
 
             # write to bashrc
             if write_bashrc:

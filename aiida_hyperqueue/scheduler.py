@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ###########################################################################
 # Copyright (c), The AiiDA team. All rights reserved.                     #
 # This file is part of the AiiDA code.                                    #
@@ -14,8 +13,8 @@ import typing as t
 import warnings
 
 from aiida.common.extendeddicts import AttributeDict
-from aiida.schedulers import Scheduler, SchedulerError, BashCliScheduler
-from aiida.schedulers.datastructures import JobInfo, JobState, JobResource, JobTemplate
+from aiida.schedulers import BashCliScheduler, Scheduler, SchedulerError
+from aiida.schedulers.datastructures import JobInfo, JobResource, JobState, JobTemplate
 
 # Mapping of HyperQueue states to AiiDA `JobState`s
 _MAP_STATUS_HYPERQUEUE = {

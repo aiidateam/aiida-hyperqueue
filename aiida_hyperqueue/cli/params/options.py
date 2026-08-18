@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """Reusable options for CLI commands."""
 
 import functools
 
 import click
+
 from aiida.cmdline.params import options as core_options
 from aiida.cmdline.params import types as core_types
 

@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
-import pytest
 import time
+
+import pytest
+from aiida_hyperqueue.cli import cmd_info, cmd_start, cmd_stop
 from click.testing import CliRunner
 
 from aiida.transports.transport import Transport as TransportClass
-from aiida_hyperqueue.cli import cmd_info, cmd_start, cmd_stop
 
 from .conftest import HqEnv, get_hq_binary
 
@@ -57,11 +57,11 @@ def server_dir_mock_exec_command_wait(tmp_path):
         cmd_list = command.split(" ")
         if command.startswith("hq"):  # `hq`
             command = " ".join(
-                [f"{hq}", "--server-dir", f"{str(tmp_path.resolve())}"] + cmd_list[1:]
+                [f"{hq}", "--server-dir", f"{tmp_path.resolve()!s}"] + cmd_list[1:]
             )
         elif command.startswith("nohup hq"):  # `nohup hq`
             command = " ".join(
-                [f"nohup {hq}", "--server-dir", f"{str(tmp_path.resolve())}"]
+                [f"nohup {hq}", "--server-dir", f"{tmp_path.resolve()!s}"]
                 + cmd_list[2:]
             )
 
