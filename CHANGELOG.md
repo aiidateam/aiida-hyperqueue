@@ -1,3 +1,9 @@
+## Unpublished
+
+### ‼️ Behavior changes
+
+* `HyperQueueJobResource.accepts_default_mpiprocs_per_machine()` now returns `True`: with the deprecated `num_machines`/`num_mpiprocs_per_machine` resource keys, the computer's `default_mpiprocs_per_machine` is now honoured instead of silently falling back to a single CPU. Jobs that relied on that fallback on a computer with a default set will now request `num_machines * default_mpiprocs_per_machine` CPUs. [[#49](https://github.com/aiidateam/aiida-hyperqueue/pull/49)]
+
 ## v0.3.0
 
 ### ⬆️ Update dependencies

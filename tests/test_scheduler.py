@@ -8,7 +8,11 @@ from pathlib import Path
 from aiida.schedulers import JobState
 from aiida.common.datastructures import CodeRunMode
 from aiida.schedulers.datastructures import JobTemplate, JobTemplateCodeInfo
-from aiida_hyperqueue.scheduler import HyperQueueJobResource, HyperQueueScheduler
+from aiida_hyperqueue.scheduler import (
+    AiiDAHypereQueueDeprecationWarning,
+    HyperQueueJobResource,
+    HyperQueueScheduler,
+)
 
 from .conftest import HqEnv
 from .utils import wait_for_job_state
@@ -65,35 +69,31 @@ def test_resource_validation():
         HyperQueueJobResource(num_cpus=4, memory_mb=1.2)
 
 
-def test_resource_validation_backward_compatibility():
-    """Tests for the deprecated `num_machines` / `num_mpiprocs_per_machine` path."""
-    # num_cpus is the product of the two legacy keys
-    with pytest.warns(Warning, match="deprecated"):
-        resource = HyperQueueJobResource(num_machines=2, num_mpiprocs_per_machine=8)
-    assert resource.num_cpus == 16
+@pytest.mark.parametrize(
+    "resources, default_mpiprocs, expected_num_cpus",
+    (
+        ({"num_machines": 1}, 8, 8),  # the computer's default must be honoured
+        ({"num_machines": 1}, None, 1),  # no default on the computer -> fall back to 1
+        ({"num_machines": 2, "num_mpiprocs_per_machine": 8}, 4, 16),  # explicit wins
+        ({"num_cpus": 4}, 8, 4),  # the modern path ignores the default
+    ),
+)
+@pytest.mark.filterwarnings("ignore:The `num_machines`")
+def test_resource_preprocessing(resources, default_mpiprocs, expected_num_cpus):
+    """The computer's `default_mpiprocs_per_machine` must reach the deprecated `num_machines` path.
 
-    # the computer's default_mpiprocs_per_machine, which aiida-core's
-    # `Scheduler.preprocess_resources` injects as `num_mpiprocs_per_machine`,
-    # must be honoured (this is what `accepts_default_mpiprocs_per_machine`
-    # returning True enables)
-    with pytest.warns(Warning, match="deprecated"):
-        resource = HyperQueueJobResource(num_machines=1, num_mpiprocs_per_machine=8)
-    assert resource.num_cpus == 8
-
-    # a computer without a default leads aiida-core to inject `None`; fall back to 1
-    with pytest.warns(Warning, match="deprecated"):
-        resource = HyperQueueJobResource(num_machines=1, num_mpiprocs_per_machine=None)
-    assert resource.num_cpus == 1
-
-    # `num_mpiprocs_per_machine` omitted entirely also falls back to 1
-    with pytest.warns(Warning, match="deprecated"):
-        resource = HyperQueueJobResource(num_machines=1)
-    assert resource.num_cpus == 1
+    Mirrors `CalcJob`, which calls `preprocess_resources` with the computer's default before the
+    resources are validated.
+    """
+    HyperQueueScheduler.preprocess_resources(resources, default_mpiprocs)
+    resource = HyperQueueScheduler().create_job_resource(**resources)
+    assert resource.num_cpus == expected_num_cpus
 
 
-def test_accepts_default_mpiprocs_per_machine():
-    """The resource class must accept the computer's default so it reaches validate_resources."""
-    assert HyperQueueJobResource.accepts_default_mpiprocs_per_machine()
+def test_resource_deprecation():
+    """The `num_machines` / `num_mpiprocs_per_machine` path is deprecated."""
+    with pytest.warns(AiiDAHypereQueueDeprecationWarning, match="deprecated"):
+        HyperQueueJobResource(num_machines=1, num_mpiprocs_per_machine=8)
 
 
 def test_submit_command():
