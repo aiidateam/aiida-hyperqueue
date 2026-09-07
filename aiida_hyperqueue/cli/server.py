@@ -1,5 +1,4 @@
 import click
-
 from aiida.cmdline.utils import echo
 
 from .params import arguments

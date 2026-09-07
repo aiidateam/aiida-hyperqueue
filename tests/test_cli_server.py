@@ -1,10 +1,10 @@
 import time
 
 import pytest
-from aiida_hyperqueue.cli import cmd_info, cmd_start, cmd_stop
+from aiida.transports.transport import Transport as TransportClass
 from click.testing import CliRunner
 
-from aiida.transports.transport import Transport as TransportClass
+from aiida_hyperqueue.cli import cmd_info, cmd_start, cmd_stop
 
 from .conftest import HqEnv, get_hq_binary
 

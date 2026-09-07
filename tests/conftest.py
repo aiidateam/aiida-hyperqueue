@@ -4,9 +4,9 @@ import os
 import signal
 import subprocess
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from collections.abc import Iterable
 
 import pytest
 
@@ -103,9 +103,7 @@ class Env:
         for p in self.processes:
             if p.final_check and p.process.poll() is not None:
                 raise Exception(
-                    "Process {0} crashed (log in {1}/{0}.out)".format(
-                        p.name, self.work_path
-                    )
+                    f"Process {p.name} crashed (log in {self.work_path}/{p.name}.out)"
                 )
 
     def kill_all(self):
