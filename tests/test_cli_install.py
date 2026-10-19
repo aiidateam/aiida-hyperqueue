@@ -1,6 +1,7 @@
 import pytest
-from aiida_hyperqueue.cli import cmd_install
 from click.testing import CliRunner
+
+from aiida_hyperqueue.cli import cmd_install
 
 
 @pytest.fixture
