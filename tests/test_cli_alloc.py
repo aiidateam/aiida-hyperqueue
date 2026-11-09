@@ -1,7 +1,6 @@
 import pytest
-from click.testing import CliRunner
-
 from aiida.transports.transport import Transport as TransportClass
+from click.testing import CliRunner
 
 
 @pytest.fixture
