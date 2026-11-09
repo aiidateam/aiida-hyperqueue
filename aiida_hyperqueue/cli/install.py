@@ -4,7 +4,6 @@ from pathlib import Path
 
 import click
 import requests
-
 from aiida import orm
 from aiida.cmdline.utils import echo
 
@@ -66,8 +65,7 @@ def cmd_install(
         tar_path = temp_dir / "hq.tar.gz"
 
         with open(tar_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+            f.writelines(response.iter_content(chunk_size=8192))
 
         with tarfile.open(tar_path, "r") as tar:
             tar.extractall(path=temp_dir)
