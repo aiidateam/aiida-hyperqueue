@@ -1,5 +1,4 @@
 import click
-
 from aiida.cmdline.params import arguments, options
 from aiida.cmdline.utils import echo
 
@@ -59,8 +58,8 @@ def cmd_add(
 
     with computer.get_transport() as transport:
         retval, _, stderr = transport.exec_command_wait(
-            f'hq alloc add slurm --backlog {backlog} --time-limit {time_limit} --name ahq {hyper} '
-            f'--workers-per-alloc {workers_per_alloc} -- {" ".join(slurm_options)}'
+            f"hq alloc add slurm --backlog {backlog} --time-limit {time_limit} --name ahq {hyper} "
+            f"--workers-per-alloc {workers_per_alloc} -- {' '.join(slurm_options)}"
         )
 
     if retval != 0:
