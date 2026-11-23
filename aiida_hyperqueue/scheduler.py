@@ -221,7 +221,7 @@ class HyperQueueScheduler(BashCliScheduler):
             )
 
     def _get_joblist_command(
-        self, jobs: t.Optional[list] = None, user: t.Optional[str] = None
+        self, jobs: list | None = None, user: str | None = None
     ) -> str:
         """Return the ``hq`` command for listing the active jobs.
 
@@ -261,7 +261,7 @@ class HyperQueueScheduler(BashCliScheduler):
                 hq_job_dict["id"]
             )  # must be str, if it is a int job will not waiting
             job_info.title = hq_job_dict["name"]
-            stats: t.List[str] = [
+            stats: list[str] = [
                 stat for stat, v in hq_job_dict["task_stats"].items() if v > 0
             ]
             if hq_job_dict["task_count"] != 1 or len(stats) != 1:
