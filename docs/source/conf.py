@@ -12,10 +12,10 @@
 
 import time
 
-import aiida_hyperqueue
-
 from aiida import load_profile
 from aiida.storage.sqlite_temp import SqliteTempBackend
+
+import aiida_hyperqueue
 
 # -- AiiDA-related setup --------------------------------------------------
 temp_profile = SqliteTempBackend.create_profile("temp-profile")
@@ -71,9 +71,7 @@ copyright_year_string = (
     else f"{copyright_first_year}-{current_year}"
 )
 # pylint: disable=redefined-builtin
-copyright = "{}, {}. All rights reserved".format(
-    copyright_year_string, copyright_owners
-)
+copyright = f"{copyright_year_string}, {copyright_owners}. All rights reserved"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
